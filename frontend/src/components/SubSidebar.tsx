@@ -1,0 +1,72 @@
+import { Icon } from '@blueprintjs/core'
+import { DeviceInfo } from '../types'
+import { deviceColor } from '../utils'
+
+interface Props {
+  activeSection: 'library' | 'devices'
+  onImport: () => void
+  onAdd: () => void
+  onReset: () => void
+  importStatus: string
+  devices: DeviceInfo[]
+  activeDeviceID: string | null
+  deviceLetterMap: Map<string, string>
+  onSelectDevice: (id: string) => void
+}
+
+export function SubSidebar({ activeSection, onImport, onAdd, onReset, importStatus, devices, activeDeviceID, deviceLetterMap, onSelectDevice }: Props) {
+  return (
+    <div className="w-12 shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col items-center py-2 gap-1">
+      {activeSection === 'library' && (
+        <>
+          <button
+            onClick={onImport}
+            title="Import from Calibre"
+            className="w-9 h-9 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+          >
+            <Icon icon="import" size={18} />
+          </button>
+          <button
+            onClick={onAdd}
+            title="Add Books"
+            className="w-9 h-9 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+          >
+            <Icon icon="plus" size={18} />
+          </button>
+          <div className="flex-1" />
+          <button
+            onClick={onReset}
+            title="Reset Library"
+            className="w-9 h-9 flex items-center justify-center rounded text-zinc-700 hover:text-red-500 hover:bg-red-950/30 transition-colors"
+          >
+            <Icon icon="trash" size={16} />
+          </button>
+        </>
+      )}
+      {activeSection === 'devices' && (
+        <>
+          {devices.map(d => {
+            const letter = deviceLetterMap.get(d.ID) ?? '?'
+            return (
+              <button
+                key={d.ID}
+                onClick={() => onSelectDevice(d.ID)}
+                title={d.Name}
+                className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
+                  activeDeviceID === d.ID ? 'ring-2 ring-zinc-500' : 'hover:opacity-80'
+                }`}
+              >
+                <div
+                  className="w-7 h-7 flex items-center justify-center rounded font-bold text-sm text-zinc-900"
+                  style={{ backgroundColor: deviceColor(letter) }}
+                >
+                  {letter}
+                </div>
+              </button>
+            )
+          })}
+        </>
+      )}
+    </div>
+  )
+}

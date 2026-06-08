@@ -1,0 +1,12 @@
+@import "@blueprintjs/icons/lib/css/blueprint-icons.css";
+@import "@blueprintjs/core/lib/css/blueprint.css";
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: "Geist", sans-serif;
+}
+
+body {
+  font-family: "Geist", sans-serif;
+}

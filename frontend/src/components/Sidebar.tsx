@@ -1,0 +1,46 @@
+import { Icon } from '@blueprintjs/core'
+
+interface Props {
+  isLibraryActive: boolean
+  isDevicesActive: boolean
+  onSelectLibrary: () => void
+  onSelectDevices: () => void
+  onRescan: () => void
+}
+
+export function Sidebar({ isLibraryActive, isDevicesActive, onSelectLibrary, onSelectDevices, onRescan }: Props) {
+  return (
+    <div className="w-12 shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col items-center py-2 gap-1">
+      <button
+        onClick={onSelectLibrary}
+        title="Library"
+        className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
+          isLibraryActive
+            ? 'bg-zinc-700 text-zinc-100'
+            : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'
+        }`}
+      >
+        <Icon icon="book" size={18} />
+      </button>
+      <button
+        onClick={onSelectDevices}
+        title="Devices"
+        className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
+          isDevicesActive
+            ? 'bg-zinc-700 text-zinc-100'
+            : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'
+        }`}
+      >
+        <Icon icon="desktop" size={18} />
+      </button>
+      <div className="flex-1" />
+      <button
+        onClick={onRescan}
+        title="Rescan for devices"
+        className="w-9 h-9 flex items-center justify-center rounded text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800 transition-colors"
+      >
+        <Icon icon="refresh" size={16} />
+      </button>
+    </div>
+  )
+}
