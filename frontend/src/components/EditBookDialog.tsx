@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Book } from '../types'
 import { BookEditForm } from './BookEditForm'
@@ -9,6 +10,12 @@ interface Props {
 }
 
 export function EditBookDialog({ book, onClose, onSave }: Props) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
   if (!book) return null
 
   return createPortal(

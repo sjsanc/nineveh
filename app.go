@@ -330,4 +330,3 @@ func (a *App) SendBook(bookID int64, deviceID string, format metadata.Format) er
 	}
 	return fmt.Errorf("device %s not found", deviceID)
 }
-

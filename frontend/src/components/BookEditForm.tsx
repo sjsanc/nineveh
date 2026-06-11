@@ -24,13 +24,13 @@ type FormValues = z.infer<typeof schema>
 function toFormValues(book: Book): FormValues {
   return {
     Title: book.Title,
-    Authors: book.Authors.join(', '),
+    Authors: (book.Authors ?? []).join(', '),
     Publisher: book.Publisher,
     Series: book.Series,
     SeriesIndex: book.SeriesIndex,
     Language: book.Language,
     Description: book.Description,
-    Tags: book.Tags.join(', '),
+    Tags: (book.Tags ?? []).join(', '),
     Rating: book.Rating,
     DatePublished: book.DatePublished.slice(0, 10),
     IsRead: book.IsRead,
