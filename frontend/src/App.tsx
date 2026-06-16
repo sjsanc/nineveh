@@ -9,9 +9,12 @@ import { EditBookDialog } from './components/EditBookDialog'
 import { FetchMetadataDialog } from './components/FetchMetadataDialog'
 import { Sidebar } from './components/Sidebar'
 import { SubSidebar } from './components/SubSidebar'
-import { Book, BookFile, DeviceInfo, metadata } from './types'
+import { Book, BookFile, DeviceInfo, FetchedMetadata, metadata } from './types'
 import { GetBooks, SelectDirectory, SelectFiles, ImportFile, ImportFromCalibre, ResetLibrary, DetectDevices, ListDeviceBooks, SendBook, UpdateBook, DeleteBook, RemoveFromDevice, FetchBookMetadata } from '../wailsjs/go/main/App'
 import { EventsOn } from '../wailsjs/runtime/runtime'
+import { ErrorBoundary } from './components/ErrorBoundary'
+
+const KINDLE_FORMAT_PRIORITY = ['azw3', 'mobi', 'azw', 'epub', 'pdf']
 
 function App() {
   const { prefs: appPrefs, updatePrefs } = usePrefs()
@@ -20,7 +23,7 @@ function App() {
   const [selectedBookIds, setSelectedBookIds] = useState<Set<number>>(new Set())
   const [editingBook, setEditingBook] = useState<Book | null>(null)
   const [fetchingBook, setFetchingBook] = useState<Book | null>(null)
-  const [metadataCandidates, setMetadataCandidates] = useState<any[] | null>(null)
+  const [metadataCandidates, setMetadataCandidates] = useState<FetchedMetadata[] | null>(null)
   const [fetchError, setFetchError] = useState('')
   const [importStatus, setImportStatus] = useState('')
   const [devices, setDevices] = useState<DeviceInfo[]>([])
@@ -144,8 +147,6 @@ function App() {
     setSelectedBookIds(ids)
     if (focused) setSelectedBook(focused)
   }
-
-  const KINDLE_FORMAT_PRIORITY = ['azw3', 'mobi', 'azw', 'epub', 'pdf']
 
   async function handleSendToDevice(bookIds: number[], deviceId: string) {
     const total = bookIds.length
@@ -313,6 +314,7 @@ function App() {
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-hidden flex flex-col">
+          <ErrorBoundary key={activeSection}>
           {activeSection === 'devices' ? (
             <div className="flex-1 overflow-hidden flex flex-row">
               <DeviceTable
@@ -364,23 +366,28 @@ function App() {
               )}
             </div>
           )}
+          </ErrorBoundary>
         </main>
       </div>
-      <EditBookDialog
-        book={editingBook}
-        onClose={() => setEditingBook(null)}
-        onSave={handleSaveBook}
-      />
-      {fetchingBook && (
-        <FetchMetadataDialog
-          book={fetchingBook}
-          candidates={metadataCandidates}
-          error={fetchError}
-          onClose={() => { setFetchingBook(null); setMetadataCandidates(null); setFetchError('') }}
-          onSave={updated => {
-            handleSaveBook(updated)
-          }}
+      <ErrorBoundary key={editingBook?.ID ?? 'no-edit'}>
+        <EditBookDialog
+          book={editingBook}
+          onClose={() => setEditingBook(null)}
+          onSave={handleSaveBook}
         />
+      </ErrorBoundary>
+      {fetchingBook && (
+        <ErrorBoundary key={fetchingBook.ID}>
+          <FetchMetadataDialog
+            book={fetchingBook}
+            candidates={metadataCandidates}
+            error={fetchError}
+            onClose={() => { setFetchingBook(null); setMetadataCandidates(null); setFetchError('') }}
+            onSave={updated => {
+              handleSaveBook(updated)
+            }}
+          />
+        </ErrorBoundary>
       )}
     </div>
   )

@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
 import DOMPurify from 'dompurify'
 import { GetCoverData } from '../../wailsjs/go/main/App'
 import { Book } from '../types'
 import { FORMAT_COLORS, formatDate, formatDescription, formatSize } from '../utils'
 import { useResizablePanel } from '../lib/useResizablePanel'
+import { useCoverImage } from '../lib/useCoverImage'
 
 interface Props {
   book: Book
@@ -12,15 +12,8 @@ interface Props {
 }
 
 export function BookPanel({ book, width, onWidthChange }: Props) {
-  const [coverSrc, setCoverSrc] = useState('')
   const handleDragMouseDown = useResizablePanel(width, onWidthChange)
-
-  useEffect(() => {
-    setCoverSrc('')
-    if (book.CoverPath) {
-      GetCoverData(book.CoverPath).then(setCoverSrc).catch(() => setCoverSrc(''))
-    }
-  }, [book.CoverPath])
+  const coverSrc = useCoverImage(book.CoverPath || undefined, GetCoverData)
 
   return (
     <div

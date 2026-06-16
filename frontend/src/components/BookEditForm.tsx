@@ -3,9 +3,12 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { MenuItem } from '@blueprintjs/core'
-import { MultiSelect, Suggest } from '@blueprintjs/select'
+import { Suggest } from '@blueprintjs/select'
 import { Book, metadata } from '../types'
 import { UpdateBook, GetAllAuthors, GetAllTags, GetAllSeries, GetCoverData } from '../../wailsjs/go/main/App'
+import { filterItem } from '../utils'
+import { useCoverImage } from '../lib/useCoverImage'
+import { EditableMultiSelect } from './EditableMultiSelect'
 
 const schema = z.object({
   Title: z.string().min(1, 'Title is required'),
@@ -66,22 +69,11 @@ interface Props {
   onSave: (updated: Book) => void
 }
 
-function filterItem(query: string, item: string): boolean {
-  return item.toLowerCase().includes(query.toLowerCase())
-}
-
 export function BookEditForm({ book, onClose, onSave }: Props) {
   const [allAuthors, setAllAuthors] = useState<string[]>([])
   const [allTags, setAllTags] = useState<string[]>([])
   const [allSeries, setAllSeries] = useState<string[]>([])
-  const [coverSrc, setCoverSrc] = useState('')
-
-  useEffect(() => {
-    setCoverSrc('')
-    if (book.CoverPath) {
-      GetCoverData(book.CoverPath).then(setCoverSrc).catch(() => setCoverSrc(''))
-    }
-  }, [book.CoverPath])
+  const coverSrc = useCoverImage(book.CoverPath || undefined, GetCoverData)
 
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -146,52 +138,7 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
 
       <div>
         <label className="block text-sm font-medium text-zinc-300 mb-2">Authors</label>
-        <Controller
-          control={control}
-          name="Authors"
-          render={({ field }) => (
-            <MultiSelect<string>
-              items={allAuthors}
-              selectedItems={field.value}
-              onItemSelect={(item) => {
-                if (!field.value.includes(item)) {
-                  field.onChange([...field.value, item])
-                }
-              }}
-              onRemove={(item) => field.onChange(field.value.filter(a => a !== item))}
-              tagRenderer={(item) => item}
-              itemRenderer={(item, { handleClick, handleFocus, modifiers }) => {
-                if (!modifiers.matchesPredicate) return null
-                return (
-                  <MenuItem
-                    key={item}
-                    text={item}
-                    onClick={handleClick}
-                    onFocus={handleFocus}
-                    active={modifiers.active}
-                    disabled={modifiers.disabled}
-                    selected={field.value.includes(item)}
-                    roleStructure="listoption"
-                  />
-                )
-              }}
-              itemPredicate={filterItem}
-              createNewItemFromQuery={(q) => q}
-              createNewItemRenderer={(query, active, handleClick) => (
-                <MenuItem
-                  key="create"
-                  icon="add"
-                  text={`Add "${query}"`}
-                  active={active}
-                  onClick={handleClick}
-                  roleStructure="listoption"
-                />
-              )}
-              noResults={<MenuItem disabled text="No results" roleStructure="listoption" />}
-              placeholder="Add author…"
-            />
-          )}
-        />
+        <EditableMultiSelect control={control} name="Authors" items={allAuthors} placeholder="Add author…" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -345,52 +292,7 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
 
       <div>
         <label className="block text-sm font-medium text-zinc-300 mb-2">Tags</label>
-        <Controller
-          control={control}
-          name="Tags"
-          render={({ field }) => (
-            <MultiSelect<string>
-              items={allTags}
-              selectedItems={field.value}
-              onItemSelect={(item) => {
-                if (!field.value.includes(item)) {
-                  field.onChange([...field.value, item])
-                }
-              }}
-              onRemove={(item) => field.onChange(field.value.filter(t => t !== item))}
-              tagRenderer={(item) => item}
-              itemRenderer={(item, { handleClick, handleFocus, modifiers }) => {
-                if (!modifiers.matchesPredicate) return null
-                return (
-                  <MenuItem
-                    key={item}
-                    text={item}
-                    onClick={handleClick}
-                    onFocus={handleFocus}
-                    active={modifiers.active}
-                    disabled={modifiers.disabled}
-                    selected={field.value.includes(item)}
-                    roleStructure="listoption"
-                  />
-                )
-              }}
-              itemPredicate={filterItem}
-              createNewItemFromQuery={(q) => q}
-              createNewItemRenderer={(query, active, handleClick) => (
-                <MenuItem
-                  key="create"
-                  icon="add"
-                  text={`Add "${query}"`}
-                  active={active}
-                  onClick={handleClick}
-                  roleStructure="listoption"
-                />
-              )}
-              noResults={<MenuItem disabled text="No results" roleStructure="listoption" />}
-              placeholder="Add tag…"
-            />
-          )}
-        />
+        <EditableMultiSelect control={control} name="Tags" items={allTags} placeholder="Add tag…" />
       </div>
 
       <div>

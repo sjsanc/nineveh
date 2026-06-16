@@ -52,6 +52,10 @@ export function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+export function filterItem(query: string, item: string): boolean {
+  return item.toLowerCase().includes(query.toLowerCase())
+}
+
 export function stemOf(path: string): string {
   const base = path.split('/').pop() ?? path
   const dot = base.lastIndexOf('.')

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Icon } from '@blueprintjs/core'
 import { Menu, MenuItem, MenuDivider } from '@blueprintjs/core'
@@ -13,8 +13,13 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Book, BookFile, DeviceInfo } from '../types'
 import { FORMAT_COLORS, formatSize, stemOf, buildIndex, matchBook } from '../utils'
-
-const Dash = () => <span className="text-zinc-600">—</span>
+import { useContainerWidth } from '../lib/useContainerWidth'
+import { useShiftCtrlSelect } from '../lib/useShiftCtrlSelect'
+import { useDismissableContextMenu } from '../lib/useDismissableContextMenu'
+import { makeColWidth, virtualPadding } from '../lib/virtualTable'
+import { VirtualTableHead } from './table/VirtualTableHead'
+import { Dash } from './table/Dash'
+import { SelectionCheckmark } from './table/SelectionCheckmark'
 
 interface Props {
   data: BookFile[]
@@ -97,34 +102,12 @@ function makeColumns(index: Map<string, Book>): ColumnDef<BookFile>[] {
 export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice, onSelectFile }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set())
-  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [containerWidth, setContainerWidth] = useState(0)
-  const lastClickedIndex = useRef<number | null>(null)
+  const [ctxMenu, setCtxMenu] = useDismissableContextMenu('device-ctx-menu')
+  const { ref: containerRef, width: containerWidth } = useContainerWidth<HTMLDivElement>()
+  const { lastClickedIndex, computeNext } = useShiftCtrlSelect()
 
   const index = useMemo(() => buildIndex(books), [books])
   const columns = useMemo(() => makeColumns(index), [index])
-
-  useLayoutEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    setContainerWidth(el.getBoundingClientRect().width)
-    const obs = new ResizeObserver(([entry]) => setContainerWidth(entry.contentRect.width))
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [])
-
-  useEffect(() => {
-    if (!ctxMenu) return
-    function onPointerDown(e: PointerEvent) {
-      const menu = document.getElementById('device-ctx-menu')
-      if (menu && !menu.contains(e.target as Node)) {
-        setCtxMenu(null)
-      }
-    }
-    document.addEventListener('pointerdown', onPointerDown)
-    return () => document.removeEventListener('pointerdown', onPointerDown)
-  }, [ctxMenu])
 
   const table = useReactTable({
     data,
@@ -144,42 +127,13 @@ export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice
     estimateSize: () => 36,
     overscan: 5,
   })
-  const virtualItems = rowVirtualizer.getVirtualItems()
-  const virtualTotalSize = rowVirtualizer.getTotalSize()
-  const paddingTop = virtualItems[0]?.start ?? 0
-  const paddingBottom = virtualTotalSize - (virtualItems.at(-1)?.end ?? 0)
-
-  const colTotalSize = table.getTotalSize()
-  const colWidth = (size: number) =>
-    containerWidth > 0 && colTotalSize > 0 ? (size / colTotalSize) * containerWidth : size
+  const { items: virtualItems, paddingTop, paddingBottom } = virtualPadding(rowVirtualizer)
+  const colWidth = makeColWidth(table, containerWidth)
 
   function handleRowClick(e: React.MouseEvent, path: string, rowIndex: number) {
-    if (e.shiftKey && lastClickedIndex.current !== null) {
-      const lo = Math.min(lastClickedIndex.current, rowIndex)
-      const hi = Math.max(lastClickedIndex.current, rowIndex)
-      const next = new Set(rows.slice(lo, hi + 1).map(r => r.original.Path))
-      setSelectedPaths(next)
-      if (next.size === 1) {
-        onSelectFile?.(data.find(f => f.Path === path) ?? null)
-      } else {
-        onSelectFile?.(null)
-      }
-    } else if (e.ctrlKey || e.metaKey) {
-      const next = new Set(selectedPaths)
-      if (next.has(path)) next.delete(path)
-      else next.add(path)
-      setSelectedPaths(next)
-      lastClickedIndex.current = rowIndex
-      if (next.size === 1) {
-        onSelectFile?.(data.find(f => f.Path === [...next][0]) ?? null)
-      } else {
-        onSelectFile?.(null)
-      }
-    } else {
-      lastClickedIndex.current = rowIndex
-      setSelectedPaths(new Set([path]))
-      onSelectFile?.(data.find(f => f.Path === path) ?? null)
-    }
+    const next = computeNext(e, path, rowIndex, selectedPaths, (lo, hi) => rows.slice(lo, hi + 1).map(r => r.original.Path))
+    setSelectedPaths(next)
+    onSelectFile?.(next.size === 1 ? data.find(f => f.Path === [...next][0]) ?? null : null)
   }
 
   function handleContextMenu(e: React.MouseEvent, path: string, rowIndex: number) {
@@ -228,33 +182,7 @@ export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice
           className="text-sm text-zinc-200"
           style={{ width: containerWidth || '100%', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}
         >
-          <thead className="sticky top-0 z-10 bg-zinc-900">
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
-                {hg.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="relative text-left px-3 py-2 font-medium text-zinc-400 border-b border-zinc-700 select-none whitespace-nowrap"
-                    style={{ width: colWidth(header.getSize()) }}
-                  >
-                    <div
-                      className={`flex items-center justify-between gap-1 ${header.column.getCanSort() ? 'cursor-pointer hover:text-zinc-100' : ''}`}
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {header.column.getIsSorted() === 'asc' && <Icon icon="sort-asc" size={12} className="text-zinc-400" />}
-                      {header.column.getIsSorted() === 'desc' && <Icon icon="sort-desc" size={12} className="text-zinc-400" />}
-                    </div>
-                    <div
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
-                      className="absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none bg-zinc-600 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity"
-                    />
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
+          <VirtualTableHead table={table} colWidth={colWidth} />
           <tbody>
             {paddingTop > 0 && <tr><td style={{ height: paddingTop }} /></tr>}
             {virtualItems.map((virtualRow) => {
@@ -282,7 +210,7 @@ export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice
                     >
                       {cell.column.id === 'index'
                         ? isSelected && selectionCount > 1
-                          ? <span className="flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 shrink-0"><svg viewBox="0 0 12 12" fill="none" className="w-2.5 h-2.5"><path d="M2 6l2.5 2.5L10 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
+                          ? <SelectionCheckmark />
                           : <span className="text-zinc-500">{virtualRow.index + 1}</span>
                         : flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>

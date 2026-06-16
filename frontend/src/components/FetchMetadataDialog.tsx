@@ -1,11 +1,8 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Spinner, NonIdealState, Callout, HTMLSelect } from '@blueprintjs/core'
-import { Book, metadata } from '../types'
-import { fetcher } from '../../wailsjs/go/models'
+import { Book, FetchedMetadata, metadata } from '../types'
 import { UpdateBook, ApplyFetchedCover } from '../../wailsjs/go/main/App'
-
-type FetchedMetadata = InstanceType<typeof fetcher.FetchedMetadata>
 
 interface Props {
   book: Book

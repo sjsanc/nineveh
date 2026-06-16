@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import DOMPurify from 'dompurify'
 import { GetCoverData, GetDeviceFileCover } from '../../wailsjs/go/main/App'
 import { Book, BookFile } from '../types'
 import { Icon } from '@blueprintjs/core'
 import { FORMAT_COLORS, formatDate, formatSize, stemOf, buildIndex, matchBook } from '../utils'
 import { useResizablePanel } from '../lib/useResizablePanel'
+import { useCoverImage } from '../lib/useCoverImage'
 
 interface Props {
   file: BookFile
@@ -14,20 +15,16 @@ interface Props {
 }
 
 export function DevicePanel({ file, books, width, onWidthChange }: Props) {
-  const [coverSrc, setCoverSrc] = useState('')
   const handleDragMouseDown = useResizablePanel(width, onWidthChange)
 
   const index = useMemo(() => buildIndex(books), [books])
   const book = matchBook(file.Path, index)
 
-  useEffect(() => {
-    setCoverSrc('')
-    if (book?.CoverPath) {
-      GetCoverData(book.CoverPath).then(setCoverSrc).catch(() => setCoverSrc(''))
-    } else if (!book && file.Path) {
-      GetDeviceFileCover(file.Path).then(setCoverSrc).catch(() => setCoverSrc(''))
-    }
-  }, [book?.CoverPath, file.Path])
+  // Library-matched files use the library cover; unmatched files fall back to
+  // a cover extracted directly from the device file.
+  const coverPath = book?.CoverPath || (!book ? file.Path : undefined)
+  const coverFetcher = book?.CoverPath ? GetCoverData : GetDeviceFileCover
+  const coverSrc = useCoverImage(coverPath, coverFetcher)
 
   const filename = file.Path.split('/').pop() ?? file.Path
 
