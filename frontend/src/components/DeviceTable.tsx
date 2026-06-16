@@ -20,6 +20,7 @@ interface Props {
   data: BookFile[]
   books: Book[]
   device?: DeviceInfo
+  isLoading?: boolean
   onRemoveFromDevice?: (paths: string[]) => void
   onSelectFile?: (file: BookFile | null) => void
 }
@@ -93,7 +94,7 @@ function makeColumns(index: Map<string, Book>): ColumnDef<BookFile>[] {
   ]
 }
 
-export function DeviceTable({ data, books, device, onRemoveFromDevice, onSelectFile }: Props) {
+export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice, onSelectFile }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set())
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null)
@@ -203,7 +204,7 @@ export function DeviceTable({ data, books, device, onRemoveFromDevice, onSelectF
           </div>
           <div className="flex flex-col gap-0.5">
             <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Books</span>
-            <span className="text-sm text-zinc-200 font-medium">{data.length}</span>
+            <span className="text-sm text-zinc-200 font-medium">{isLoading ? '—' : data.length}</span>
           </div>
           {device.FreeSpace > 0 && (
             <div className="flex flex-col gap-0.5">
@@ -214,7 +215,11 @@ export function DeviceTable({ data, books, device, onRemoveFromDevice, onSelectF
         </div>
       )}
     <div ref={containerRef} className="overflow-x-hidden overflow-y-auto flex-1 w-full">
-      {data.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center h-full text-zinc-600 text-sm">
+          Loading books…
+        </div>
+      ) : data.length === 0 ? (
         <div className="flex items-center justify-center h-full text-zinc-600 text-sm">
           No books found on device
         </div>

@@ -29,6 +29,7 @@ function App() {
   const [deviceBooks, setDeviceBooks] = useState<BookFile[]>([])
   const [activeSection, setActiveSection] = useState<'library' | 'devices'>('library')
   const [selectedDeviceFile, setSelectedDeviceFile] = useState<BookFile | null>(null)
+  const [isLoadingDeviceBooks, setIsLoadingDeviceBooks] = useState(false)
 
   function assignLetters(found: DeviceInfo[]) {
     setDeviceLetterMap(prev => {
@@ -60,7 +61,8 @@ function App() {
       assignLetters(found)
       if (found.length > 0) {
         setActiveDeviceID(found[0].ID)
-        ListDeviceBooks(found[0].ID).then(files => setDeviceBooks(files ?? [])).catch(console.error)
+        setIsLoadingDeviceBooks(true)
+        ListDeviceBooks(found[0].ID).then(files => setDeviceBooks(files ?? [])).catch(console.error).finally(() => setIsLoadingDeviceBooks(false))
       }
     }).catch(console.error)
   }, [])
@@ -75,6 +77,13 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (devices.length === 0) {
+      setActiveSection('library')
+      setActiveDeviceID(null)
+      setDeviceBooks([])
+      setSelectedDeviceFile(null)
+      return
+    }
     if (activeDeviceID && !devices.some(d => d.ID === activeDeviceID)) {
       setActiveDeviceID(null)
       setDeviceBooks([])
@@ -82,14 +91,18 @@ function App() {
   }, [devices])
 
   async function handleSelectDevice(id: string) {
+    if (isLoadingDeviceBooks) return
     setActiveDeviceID(id)
     setSelectedDeviceFile(null)
+    setIsLoadingDeviceBooks(true)
     try {
       const files = await ListDeviceBooks(id)
       setDeviceBooks(files ?? [])
     } catch (err) {
       setDeviceBooks([])
       console.error(err)
+    } finally {
+      setIsLoadingDeviceBooks(false)
     }
   }
 
@@ -102,17 +115,8 @@ function App() {
   async function handleSelectDevices() {
     setActiveSection('devices')
     setSelectedDeviceFile(null)
-    if (devices.length > 0 && !activeDeviceID) {
-      const first = devices[0]
-      setActiveDeviceID(first.ID)
-      try {
-        const files = await ListDeviceBooks(first.ID)
-        setDeviceBooks(files ?? [])
-      } catch (err) {
-        setDeviceBooks([])
-        console.error(err)
-      }
-    }
+    const targetId = activeDeviceID ?? devices[0]?.ID
+    if (targetId) await handleSelectDevice(targetId)
   }
 
   async function handleRescanDevices() {
@@ -123,7 +127,8 @@ function App() {
       assignLetters(found)
       if (found.length > 0) {
         setActiveDeviceID(found[0].ID)
-        ListDeviceBooks(found[0].ID).then(files => setDeviceBooks(files ?? [])).catch(console.error)
+        setIsLoadingDeviceBooks(true)
+        ListDeviceBooks(found[0].ID).then(files => setDeviceBooks(files ?? [])).catch(console.error).finally(() => setIsLoadingDeviceBooks(false))
       } else {
         setDeviceBooks([])
       }
@@ -304,6 +309,7 @@ function App() {
         activeDeviceID={activeDeviceID}
         deviceLetterMap={deviceLetterMap}
         onSelectDevice={handleSelectDevice}
+        isLoadingDeviceBooks={isLoadingDeviceBooks}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-hidden flex flex-col">
@@ -313,6 +319,7 @@ function App() {
                 data={deviceBooks}
                 books={books}
                 device={activeDevice ?? undefined}
+                isLoading={isLoadingDeviceBooks}
                 onRemoveFromDevice={handleRemoveFromDevice}
                 onSelectFile={setSelectedDeviceFile}
               />

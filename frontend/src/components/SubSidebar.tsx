@@ -12,9 +12,10 @@ interface Props {
   activeDeviceID: string | null
   deviceLetterMap: Map<string, string>
   onSelectDevice: (id: string) => void
+  isLoadingDeviceBooks: boolean
 }
 
-export function SubSidebar({ activeSection, onImport, onAdd, onReset, importStatus, devices, activeDeviceID, deviceLetterMap, onSelectDevice }: Props) {
+export function SubSidebar({ activeSection, onImport, onAdd, onReset, importStatus, devices, activeDeviceID, deviceLetterMap, onSelectDevice, isLoadingDeviceBooks }: Props) {
   return (
     <div className="w-12 shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col items-center py-2 gap-1">
       {activeSection === 'library' && (
@@ -47,13 +48,16 @@ export function SubSidebar({ activeSection, onImport, onAdd, onReset, importStat
         <>
           {devices.map(d => {
             const letter = deviceLetterMap.get(d.ID) ?? '?'
+            const isActive = activeDeviceID === d.ID
+            const disabled = isLoadingDeviceBooks && !isActive
             return (
               <button
                 key={d.ID}
                 onClick={() => onSelectDevice(d.ID)}
+                disabled={disabled}
                 title={d.Name}
                 className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
-                  activeDeviceID === d.ID ? 'ring-2 ring-zinc-500' : 'hover:opacity-80'
+                  isActive ? 'ring-2 ring-zinc-500' : disabled ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-80'
                 }`}
               >
                 <div

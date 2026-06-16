@@ -2,6 +2,7 @@ package device
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -64,9 +65,38 @@ func findMountPoint(devPath string) (string, error) {
 	if err != nil || len(blockEntries) == 0 {
 		return "", nil
 	}
-	blockDev := "/dev/" + blockEntries[0].Name()
+	diskName := blockEntries[0].Name()
 
-	return mountPointForDevice(blockDev)
+	// Mass-storage devices are normally mounted by partition (e.g. sda1),
+	// not the raw disk (sda), so check partitions before falling back.
+	var candidates []string
+	if partitions, err := os.ReadDir(filepath.Join(matches[0], diskName)); err == nil {
+		for _, p := range partitions {
+			if p.IsDir() && strings.HasPrefix(p.Name(), diskName) {
+				candidates = append(candidates, p.Name())
+			}
+		}
+	}
+	candidates = append(candidates, diskName)
+
+	for _, name := range candidates {
+		if mp, err := mountPointForDevice("/dev/" + name); err == nil && mp != "" {
+			return mp, nil
+		}
+	}
+
+	// Nothing mounted it yet. Many minimal window managers don't run an
+	// automount daemon (gvfs, udiskie, etc.), so ask udisks2 directly
+	// rather than depending on one being present.
+	for _, name := range candidates {
+		if exec.Command("udisksctl", "mount", "-b", "/dev/"+name, "--no-user-interaction").Run() != nil {
+			continue
+		}
+		if mp, err := mountPointForDevice("/dev/" + name); err == nil && mp != "" {
+			return mp, nil
+		}
+	}
+	return "", nil
 }
 
 // mountPointForDevice reads /proc/mounts and returns the mount point for the given block device.
