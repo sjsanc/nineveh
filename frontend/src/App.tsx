@@ -289,6 +289,7 @@ function App() {
       <Sidebar
         isLibraryActive={activeSection === 'library'}
         isDevicesActive={activeSection === 'devices'}
+        hasDevices={devices.length > 0}
         onSelectLibrary={handleSelectLibrary}
         onSelectDevices={handleSelectDevices}
         onRescan={handleRescanDevices}

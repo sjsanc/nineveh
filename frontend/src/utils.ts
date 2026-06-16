@@ -76,3 +76,99 @@ export function matchBook(devicePath: string, index: Map<string, Book>): Book | 
   if (titlePart && index.has(titlePart)) return index.get(titlePart)
   return undefined
 }
+
+const HTML_TAG_RE = /<\/?[a-z][\s\S]*?>/i
+const BULLET_RE = /^\s*(?:[-*•‣◦]|\d+[.)])\s+(.*)$/
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+// EPUB/MOBI/AZW3/PDF metadata gives plain text, where any bullet list only
+// survives as literal "- "/"•" characters inline in a run-on paragraph.
+function plainTextToHtml(text: string): string {
+  const blocks: string[] = []
+  let listItems: string[] = []
+  let paragraph: string[] = []
+
+  function flushList() {
+    if (listItems.length) {
+      blocks.push(`<ul>${listItems.map(i => `<li>${i}</li>`).join('')}</ul>`)
+      listItems = []
+    }
+  }
+  function flushParagraph() {
+    if (paragraph.length) {
+      blocks.push(`<p>${paragraph.join('<br/>')}</p>`)
+      paragraph = []
+    }
+  }
+
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim()
+    if (!line) {
+      flushList()
+      flushParagraph()
+      continue
+    }
+    const m = line.match(BULLET_RE)
+    if (m) {
+      flushParagraph()
+      listItems.push(escapeHtml(m[1]))
+    } else {
+      flushList()
+      paragraph.push(escapeHtml(line))
+    }
+  }
+  flushList()
+  flushParagraph()
+  return blocks.join('')
+}
+
+function isListItem(n: ChildNode): boolean {
+  return n.nodeType === Node.ELEMENT_NODE && (n as Element).tagName === 'LI'
+}
+
+function isWhitespaceNode(n: ChildNode): boolean {
+  return n.nodeType === Node.TEXT_NODE && !(n.textContent ?? '').trim()
+}
+
+// Some metadata feeds (Goodreads/Amazon-style descriptions) emit bare <li>
+// bullet points with no wrapping <ul>/<ol>. Browsers render those with no
+// hanging indentation, so group consecutive orphan <li> siblings into a
+// synthesized <ul> that the prose styling can actually indent.
+function wrapOrphanListItems(root: ParentNode) {
+  const parents = new Set<Element>()
+  root.querySelectorAll('li').forEach(li => {
+    const parent = li.parentElement
+    if (parent && parent.tagName !== 'UL' && parent.tagName !== 'OL') parents.add(parent)
+  })
+
+  parents.forEach(parent => {
+    const nodes = Array.from(parent.childNodes)
+    let i = 0
+    while (i < nodes.length) {
+      if (!isListItem(nodes[i])) { i++; continue }
+      const run: ChildNode[] = []
+      let j = i
+      while (j < nodes.length && (isListItem(nodes[j]) || isWhitespaceNode(nodes[j]))) {
+        run.push(nodes[j])
+        j++
+      }
+      const insertBefore = nodes[j] ?? null
+      const ul = document.createElement('ul')
+      run.filter(isListItem).forEach(n => ul.appendChild(n))
+      parent.insertBefore(ul, insertBefore)
+      i = j
+    }
+  })
+}
+
+export function formatDescription(text: string): string {
+  if (!text) return ''
+  const html = HTML_TAG_RE.test(text) ? text : plainTextToHtml(text)
+  const container = document.createElement('div')
+  container.innerHTML = html
+  wrapOrphanListItems(container)
+  return container.innerHTML
+}

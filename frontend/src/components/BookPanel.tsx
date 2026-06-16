@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import DOMPurify from 'dompurify'
 import { GetCoverData } from '../../wailsjs/go/main/App'
 import { Book } from '../types'
-import { FORMAT_COLORS, formatDate, formatSize } from '../utils'
+import { FORMAT_COLORS, formatDate, formatDescription, formatSize } from '../utils'
 import { useResizablePanel } from '../lib/useResizablePanel'
 
 interface Props {
@@ -62,11 +62,9 @@ export function BookPanel({ book, width, onWidthChange }: Props) {
             {book.SeriesIndex > 0 && <span className="text-zinc-600"> #{book.SeriesIndex}</span>}
           </p>
         )}
-        {book.Rating > 0 && (
-          <span className="text-xs tracking-tight text-amber-400 mt-0.5">
-            {'★'.repeat(book.Rating)}{'☆'.repeat(5 - book.Rating)}
-          </span>
-        )}
+        <span className={`text-xs tracking-tight mt-0.5 ${book.Rating > 0 ? 'text-amber-400' : 'text-zinc-600'}`}>
+          {'★'.repeat(book.Rating)}{'☆'.repeat(5 - book.Rating)}
+        </span>
       </div>
 
       {/* Metadata */}
@@ -134,8 +132,8 @@ export function BookPanel({ book, width, onWidthChange }: Props) {
       {book.Description && (
         <div className="px-4 py-3 flex-1 overflow-y-auto">
           <div
-            className="prose prose-invert prose-sm max-w-none text-zinc-400 text-[14px] leading-tight [&_p]:my-0.5 [&_p]:leading-tight"
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(book.Description) }}
+            className="prose prose-invert prose-sm max-w-none text-zinc-400 text-[14px] leading-tight [&_p]:my-0.5 [&_p]:leading-tight [&_ul]:my-1 [&_li]:my-0"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatDescription(book.Description)) }}
           />
         </div>
       )}

@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { MenuItem } from '@blueprintjs/core'
 import { MultiSelect, Suggest } from '@blueprintjs/select'
 import { Book, metadata } from '../types'
-import { UpdateBook, GetAllAuthors, GetAllTags, GetAllSeries } from '../../wailsjs/go/main/App'
+import { UpdateBook, GetAllAuthors, GetAllTags, GetAllSeries, GetCoverData } from '../../wailsjs/go/main/App'
 
 const schema = z.object({
   Title: z.string().min(1, 'Title is required'),
@@ -74,6 +74,14 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
   const [allAuthors, setAllAuthors] = useState<string[]>([])
   const [allTags, setAllTags] = useState<string[]>([])
   const [allSeries, setAllSeries] = useState<string[]>([])
+  const [coverSrc, setCoverSrc] = useState('')
+
+  useEffect(() => {
+    setCoverSrc('')
+    if (book.CoverPath) {
+      GetCoverData(book.CoverPath).then(setCoverSrc).catch(() => setCoverSrc(''))
+    }
+  }, [book.CoverPath])
 
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -105,7 +113,20 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+      <div className="flex gap-6">
+        <div className="w-40 shrink-0 flex flex-col items-center">
+          <div className="w-40 aspect-[2/3] rounded bg-zinc-800 overflow-hidden flex items-center justify-center">
+            {coverSrc ? (
+              <img src={coverSrc} alt={book.Title} className="w-full h-full object-cover" />
+            ) : (
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" className="text-zinc-600">
+                <path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm0 18H6V4h2v8l2.5-1.5L13 12V4h5v16z" />
+              </svg>
+            )}
+          </div>
+        </div>
+        <div className="flex-1 min-w-0 space-y-4">
       <div>
         <label className="block text-sm font-medium text-zinc-300 mb-2">Title</label>
         <Controller
@@ -387,8 +408,10 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
           )}
         />
       </div>
+        </div>
+      </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-zinc-700">
+      <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-zinc-700">
         <button
           type="button"
           onClick={onClose}

@@ -24,7 +24,7 @@ export function EditBookDialog({ book, onClose, onSave }: Props) {
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className="bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-zinc-800"
+        className="bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-800"
         onMouseDown={e => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex justify-between items-center z-10">

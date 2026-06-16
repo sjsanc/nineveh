@@ -3,12 +3,13 @@ import { Icon } from '@blueprintjs/core'
 interface Props {
   isLibraryActive: boolean
   isDevicesActive: boolean
+  hasDevices: boolean
   onSelectLibrary: () => void
   onSelectDevices: () => void
   onRescan: () => void
 }
 
-export function Sidebar({ isLibraryActive, isDevicesActive, onSelectLibrary, onSelectDevices, onRescan }: Props) {
+export function Sidebar({ isLibraryActive, isDevicesActive, hasDevices, onSelectLibrary, onSelectDevices, onRescan }: Props) {
   return (
     <div className="w-12 shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col items-center py-2 gap-1">
       <button
@@ -24,9 +25,12 @@ export function Sidebar({ isLibraryActive, isDevicesActive, onSelectLibrary, onS
       </button>
       <button
         onClick={onSelectDevices}
-        title="Devices"
+        disabled={!hasDevices}
+        title={hasDevices ? 'Devices' : 'No devices connected'}
         className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
-          isDevicesActive
+          !hasDevices
+            ? 'text-zinc-700 cursor-not-allowed'
+            : isDevicesActive
             ? 'bg-zinc-700 text-zinc-100'
             : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'
         }`}

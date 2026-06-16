@@ -51,10 +51,10 @@ func (d *DB) InsertBook(book *metadata.Book) (int64, error) {
 		return 0, fmt.Errorf("last insert id: %w", err)
 	}
 
-	if err := upsertRelations(tx, bookID, book.Authors, "authors", "book_authors", "author_id"); err != nil {
+	if err := upsertAuthors(tx, bookID, book.Authors); err != nil {
 		return 0, err
 	}
-	if err := upsertRelations(tx, bookID, book.Tags, "tags", "book_tags", "tag_id"); err != nil {
+	if err := upsertTags(tx, bookID, book.Tags); err != nil {
 		return 0, err
 	}
 
@@ -148,10 +148,10 @@ func (d *DB) UpdateBook(book *metadata.Book) error {
 		return fmt.Errorf("delete book_tags: %w", err)
 	}
 
-	if err := upsertRelations(tx, book.ID, book.Authors, "authors", "book_authors", "author_id"); err != nil {
+	if err := upsertAuthors(tx, book.ID, book.Authors); err != nil {
 		return err
 	}
-	if err := upsertRelations(tx, book.ID, book.Tags, "tags", "book_tags", "tag_id"); err != nil {
+	if err := upsertTags(tx, book.ID, book.Tags); err != nil {
 		return err
 	}
 
@@ -279,20 +279,39 @@ func queryStringList(conn *sql.DB, query string) ([]string, error) {
 
 // --- relation helpers ---
 
-func upsertRelations(tx *sql.Tx, bookID int64, names []string, table, joinTable, refCol string) error {
+func upsertAuthors(tx *sql.Tx, bookID int64, names []string) error {
 	for _, name := range names {
 		if name == "" {
 			continue
 		}
-		if _, err := tx.Exec(`INSERT OR IGNORE INTO `+table+`(name) VALUES (?)`, name); err != nil {
-			return fmt.Errorf("upsert %s %q: %w", table, name, err)
+		if _, err := tx.Exec(`INSERT OR IGNORE INTO authors (name) VALUES (?)`, name); err != nil {
+			return fmt.Errorf("upsert author %q: %w", name, err)
 		}
-		var refID int64
-		if err := tx.QueryRow(`SELECT id FROM `+table+` WHERE name = ?`, name).Scan(&refID); err != nil {
-			return fmt.Errorf("get %s id for %q: %w", table, name, err)
+		var authorID int64
+		if err := tx.QueryRow(`SELECT id FROM authors WHERE name = ?`, name).Scan(&authorID); err != nil {
+			return fmt.Errorf("get author id for %q: %w", name, err)
 		}
-		if _, err := tx.Exec(`INSERT OR IGNORE INTO `+joinTable+`(book_id, `+refCol+`) VALUES (?, ?)`, bookID, refID); err != nil {
-			return fmt.Errorf("insert %s: %w", joinTable, err)
+		if _, err := tx.Exec(`INSERT OR IGNORE INTO book_authors (book_id, author_id) VALUES (?, ?)`, bookID, authorID); err != nil {
+			return fmt.Errorf("insert book_authors: %w", err)
+		}
+	}
+	return nil
+}
+
+func upsertTags(tx *sql.Tx, bookID int64, names []string) error {
+	for _, name := range names {
+		if name == "" {
+			continue
+		}
+		if _, err := tx.Exec(`INSERT OR IGNORE INTO tags (name) VALUES (?)`, name); err != nil {
+			return fmt.Errorf("upsert tag %q: %w", name, err)
+		}
+		var tagID int64
+		if err := tx.QueryRow(`SELECT id FROM tags WHERE name = ?`, name).Scan(&tagID); err != nil {
+			return fmt.Errorf("get tag id for %q: %w", name, err)
+		}
+		if _, err := tx.Exec(`INSERT OR IGNORE INTO book_tags (book_id, tag_id) VALUES (?, ?)`, bookID, tagID); err != nil {
+			return fmt.Errorf("insert book_tags: %w", err)
 		}
 	}
 	return nil

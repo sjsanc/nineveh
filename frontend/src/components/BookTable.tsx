@@ -330,12 +330,13 @@ export function BookTable({
 
   function buildDeviceMenu() {
     if (devices.length === 0) {
-      return <MenuItem text="Send to Device" disabled />
+      return <MenuItem text="Send to Device" icon="upload" disabled />
     }
     if (devices.length === 1) {
       return (
         <MenuItem
           text={`Send to "${devices[0].Name}"`}
+          icon="upload"
           onClick={() => {
             onSendToDevice?.([...selectedBookIds] as number[], devices[0].ID)
             setCtxMenu(null)
@@ -344,11 +345,12 @@ export function BookTable({
       )
     }
     return (
-      <MenuItem text="Send to Device">
+      <MenuItem text="Send to Device" icon="upload">
         {devices.map(d => (
           <MenuItem
             key={d.ID}
             text={d.Name}
+            icon="desktop"
             onClick={() => {
               onSendToDevice?.([...selectedBookIds] as number[], d.ID)
               setCtxMenu(null)
@@ -475,6 +477,7 @@ export function BookTable({
             {selectionCount === 1 && (
               <MenuItem
                 text="Edit Metadata"
+                icon="edit"
                 onClick={() => {
                   const book = rows.find(r => selectedBookIds.has(r.original.ID as number))?.original ?? null
                   if (book) onEditBook?.(book)
@@ -496,10 +499,13 @@ export function BookTable({
             {(() => {
               const selectedBooks = rows.filter(r => selectedBookIds.has(r.original.ID as number)).map(r => r.original)
               const allRead = selectedBooks.length > 0 && selectedBooks.every(b => b.IsRead)
-              const label = allRead ? 'Mark as Unread' : 'Mark as Read'
+              const label = allRead
+                ? (selectionCount > 1 ? 'Mark All as Unread' : 'Mark as Unread')
+                : (selectionCount > 1 ? 'Mark All as Read' : 'Mark as Read')
               return (
                 <MenuItem
                   text={label}
+                  icon={allRead ? 'cross' : 'tick'}
                   onClick={() => {
                     onToggleRead?.([...selectedBookIds] as number[], !allRead)
                     setCtxMenu(null)
@@ -511,6 +517,7 @@ export function BookTable({
             <MenuDivider />
             <MenuItem
               text={`Remove ${selectionCount} book${selectionCount === 1 ? '' : 's'} from library`}
+              icon="trash"
               intent="danger"
               onClick={() => {
                 onRemoveBooks?.([...selectedBookIds] as number[])
