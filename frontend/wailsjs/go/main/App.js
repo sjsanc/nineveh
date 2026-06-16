@@ -18,6 +18,18 @@ export function FetchBookMetadata(arg1) {
   return window['go']['main']['App']['FetchBookMetadata'](arg1);
 }
 
+export function GetAllAuthors() {
+  return window['go']['main']['App']['GetAllAuthors']();
+}
+
+export function GetAllSeries() {
+  return window['go']['main']['App']['GetAllSeries']();
+}
+
+export function GetAllTags() {
+  return window['go']['main']['App']['GetAllTags']();
+}
+
 export function GetBook(arg1) {
   return window['go']['main']['App']['GetBook'](arg1);
 }

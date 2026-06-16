@@ -9,11 +9,18 @@ import (
 	"nineveh/internal/metadata"
 )
 
+const bookSelectCols = `b.id, b.title,
+	COALESCE((SELECT json_group_array(a.name)
+		FROM book_authors ba JOIN authors a ON a.id = ba.author_id
+		WHERE ba.book_id = b.id), '[]') AS authors,
+	b.publisher, b.series, b.series_index,
+	b.language, b.description,
+	COALESCE((SELECT json_group_array(t.name)
+		FROM book_tags bt JOIN tags t ON t.id = bt.tag_id
+		WHERE bt.book_id = b.id), '[]') AS tags,
+	b.rating, b.cover_path, b.date_added, b.date_published, b.isbn, b.is_read`
+
 func (d *DB) InsertBook(book *metadata.Book) (int64, error) {
-	authors, tags, pubTime, err := marshalBookParams(book)
-	if err != nil {
-		return 0, err
-	}
 	addedTime := time.Now().UTC()
 	if book.DateAdded != "" {
 		if t, err := time.Parse(time.RFC3339, book.DateAdded); err == nil {
@@ -21,23 +28,44 @@ func (d *DB) InsertBook(book *metadata.Book) (int64, error) {
 		}
 	}
 
-	res, err := d.conn.Exec(`
-		INSERT INTO books (title, authors, publisher, series, series_index, language, description, tags, rating, cover_path, date_added, date_published, isbn, is_read)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		book.Title, authors,
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return 0, fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	res, err := tx.Exec(`
+		INSERT INTO books (title, publisher, series, series_index, language, description, rating, cover_path, date_added, date_published, isbn, is_read)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		book.Title,
 		nullString(book.Publisher), nullString(book.Series), nullFloat(book.SeriesIndex),
-		nullString(book.Language), nullString(book.Description), tags,
+		nullString(book.Language), nullString(book.Description),
 		book.Rating, nullString(book.CoverPath),
-		addedTime, pubTime, nullString(book.ISBN), boolToInt(book.IsRead),
+		addedTime, parsePubTime(book.DatePublished), nullString(book.ISBN), boolToInt(book.IsRead),
 	)
 	if err != nil {
 		return 0, fmt.Errorf("insert book: %w", err)
 	}
-	return res.LastInsertId()
+	bookID, err := res.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("last insert id: %w", err)
+	}
+
+	if err := upsertRelations(tx, bookID, book.Authors, "authors", "book_authors", "author_id"); err != nil {
+		return 0, err
+	}
+	if err := upsertRelations(tx, bookID, book.Tags, "tags", "book_tags", "tag_id"); err != nil {
+		return 0, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("commit: %w", err)
+	}
+	return bookID, nil
 }
 
 func (d *DB) GetBook(id int64) (*metadata.Book, error) {
-	row := d.conn.QueryRow(`SELECT `+bookColumns+` FROM books WHERE id = ?`, id)
+	row := d.conn.QueryRow(`SELECT `+bookSelectCols+` FROM books b WHERE b.id = ?`, id)
 	book, err := scanBook(row)
 	if err != nil {
 		return nil, err
@@ -51,7 +79,7 @@ func (d *DB) GetBook(id int64) (*metadata.Book, error) {
 }
 
 func (d *DB) GetBooks() ([]*metadata.Book, error) {
-	rows, err := d.conn.Query(`SELECT ` + bookColumns + ` FROM books ORDER BY title ASC`)
+	rows, err := d.conn.Query(`SELECT ` + bookSelectCols + ` FROM books b ORDER BY b.title ASC`)
 	if err != nil {
 		return nil, fmt.Errorf("query books: %w", err)
 	}
@@ -91,25 +119,43 @@ func (d *DB) getAllFormats() (map[int64][]metadata.BookFile, error) {
 }
 
 func (d *DB) UpdateBook(book *metadata.Book) error {
-	authors, tags, pubTime, err := marshalBookParams(book)
+	tx, err := d.conn.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("begin tx: %w", err)
 	}
-	_, err = d.conn.Exec(`
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`
 		UPDATE books SET
-			title = ?, authors = ?, publisher = ?, series = ?, series_index = ?,
-			language = ?, description = ?, tags = ?, rating = ?, cover_path = ?, date_published = ?, isbn = ?, is_read = ?
+			title = ?, publisher = ?, series = ?, series_index = ?,
+			language = ?, description = ?, rating = ?, cover_path = ?,
+			date_published = ?, isbn = ?, is_read = ?
 		WHERE id = ?`,
-		book.Title, authors,
+		book.Title,
 		nullString(book.Publisher), nullString(book.Series), nullFloat(book.SeriesIndex),
-		nullString(book.Language), nullString(book.Description), tags,
+		nullString(book.Language), nullString(book.Description),
 		book.Rating, nullString(book.CoverPath),
-		pubTime, nullString(book.ISBN), boolToInt(book.IsRead), book.ID,
+		parsePubTime(book.DatePublished), nullString(book.ISBN), boolToInt(book.IsRead), book.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("update book: %w", err)
 	}
-	return nil
+
+	if _, err := tx.Exec(`DELETE FROM book_authors WHERE book_id = ?`, book.ID); err != nil {
+		return fmt.Errorf("delete book_authors: %w", err)
+	}
+	if _, err := tx.Exec(`DELETE FROM book_tags WHERE book_id = ?`, book.ID); err != nil {
+		return fmt.Errorf("delete book_tags: %w", err)
+	}
+
+	if err := upsertRelations(tx, book.ID, book.Authors, "authors", "book_authors", "author_id"); err != nil {
+		return err
+	}
+	if err := upsertRelations(tx, book.ID, book.Tags, "tags", "book_tags", "tag_id"); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (d *DB) DeleteBook(id int64) error {
@@ -131,9 +177,13 @@ func (d *DB) DeleteAllBooks() error {
 func (d *DB) SearchBooks(query string) ([]*metadata.Book, error) {
 	like := "%" + query + "%"
 	rows, err := d.conn.Query(`
-		SELECT `+bookColumns+` FROM books
-		WHERE title LIKE ? OR authors LIKE ? OR series LIKE ? OR tags LIKE ?
-		ORDER BY title ASC`,
+		SELECT `+bookSelectCols+`
+		FROM books b
+		WHERE b.title LIKE ?
+		   OR b.series LIKE ?
+		   OR EXISTS (SELECT 1 FROM book_authors ba JOIN authors a ON a.id = ba.author_id WHERE ba.book_id = b.id AND a.name LIKE ?)
+		   OR EXISTS (SELECT 1 FROM book_tags bt JOIN tags t ON t.id = bt.tag_id WHERE bt.book_id = b.id AND t.name LIKE ?)
+		ORDER BY b.title ASC`,
 		like, like, like, like,
 	)
 	if err != nil {
@@ -156,8 +206,7 @@ func (d *DB) SearchBooks(query string) ([]*metadata.Book, error) {
 
 func (d *DB) GetBookByHash(hash string) (*metadata.Book, error) {
 	row := d.conn.QueryRow(`
-		SELECT b.id, b.title, b.authors, b.publisher, b.series, b.series_index,
-		       b.language, b.description, b.tags, b.rating, b.cover_path, b.date_added, b.date_published, b.isbn, b.is_read
+		SELECT `+bookSelectCols+`
 		FROM books b
 		JOIN formats f ON f.book_id = b.id
 		WHERE f.hash = ?
@@ -186,7 +235,6 @@ func (d *DB) getFormats(bookID int64) ([]metadata.BookFile, error) {
 		return nil, fmt.Errorf("query formats: %w", err)
 	}
 	defer rows.Close()
-
 	var formats []metadata.BookFile
 	for rows.Next() {
 		var f metadata.BookFile
@@ -200,9 +248,57 @@ func (d *DB) getFormats(bookID int64) ([]metadata.BookFile, error) {
 	return formats, rows.Err()
 }
 
-// --- scan helpers ---
+func (d *DB) GetAllAuthors() ([]string, error) {
+	return queryStringList(d.conn, `SELECT name FROM authors ORDER BY name`)
+}
 
-const bookColumns = `id, title, authors, publisher, series, series_index, language, description, tags, rating, cover_path, date_added, date_published, isbn, is_read`
+func (d *DB) GetAllTags() ([]string, error) {
+	return queryStringList(d.conn, `SELECT name FROM tags ORDER BY name`)
+}
+
+func (d *DB) GetAllSeries() ([]string, error) {
+	return queryStringList(d.conn, `SELECT DISTINCT series FROM books WHERE series IS NOT NULL AND series != '' ORDER BY series`)
+}
+
+func queryStringList(conn *sql.DB, query string) ([]string, error) {
+	rows, err := conn.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("query: %w", err)
+	}
+	defer rows.Close()
+	var names []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, fmt.Errorf("scan: %w", err)
+		}
+		names = append(names, name)
+	}
+	return names, rows.Err()
+}
+
+// --- relation helpers ---
+
+func upsertRelations(tx *sql.Tx, bookID int64, names []string, table, joinTable, refCol string) error {
+	for _, name := range names {
+		if name == "" {
+			continue
+		}
+		if _, err := tx.Exec(`INSERT OR IGNORE INTO `+table+`(name) VALUES (?)`, name); err != nil {
+			return fmt.Errorf("upsert %s %q: %w", table, name, err)
+		}
+		var refID int64
+		if err := tx.QueryRow(`SELECT id FROM `+table+` WHERE name = ?`, name).Scan(&refID); err != nil {
+			return fmt.Errorf("get %s id for %q: %w", table, name, err)
+		}
+		if _, err := tx.Exec(`INSERT OR IGNORE INTO `+joinTable+`(book_id, `+refCol+`) VALUES (?, ?)`, bookID, refID); err != nil {
+			return fmt.Errorf("insert %s: %w", joinTable, err)
+		}
+	}
+	return nil
+}
+
+// --- scan helpers ---
 
 func scanBookRow(scan func(dest ...any) error) (*metadata.Book, error) {
 	var b metadata.Book
@@ -211,8 +307,8 @@ func scanBookRow(scan func(dest ...any) error) (*metadata.Book, error) {
 	var seriesIndex sql.NullFloat64
 	var dateAdded time.Time
 	var datePublished sql.NullTime
-
 	var isRead int
+
 	if err := scan(
 		&b.ID, &b.Title, &authors, &publisher, &series, &seriesIndex,
 		&language, &description, &tags, &b.Rating, &coverPath,
@@ -260,26 +356,17 @@ func scanBooks(rows *sql.Rows) ([]*metadata.Book, error) {
 	return books, rows.Err()
 }
 
-// --- marshal helpers ---
+// --- helpers ---
 
-func marshalBookParams(book *metadata.Book) (authorsJSON, tagsJSON string, pubTime sql.NullTime, err error) {
-	a, e := json.Marshal(book.Authors)
-	if e != nil {
-		return "", "", sql.NullTime{}, fmt.Errorf("marshal authors: %w", e)
+func parsePubTime(s string) sql.NullTime {
+	if s == "" {
+		return sql.NullTime{}
 	}
-	t, e := json.Marshal(book.Tags)
-	if e != nil {
-		return "", "", sql.NullTime{}, fmt.Errorf("marshal tags: %w", e)
+	if t, err := time.Parse(time.RFC3339, s); err == nil {
+		return sql.NullTime{Time: t, Valid: true}
 	}
-	if book.DatePublished != "" {
-		if pt, e := time.Parse(time.RFC3339, book.DatePublished); e == nil {
-			pubTime = sql.NullTime{Time: pt, Valid: true}
-		}
-	}
-	return string(a), string(t), pubTime, nil
+	return sql.NullTime{}
 }
-
-// --- null helpers ---
 
 func nullString(s string) sql.NullString {
 	return sql.NullString{String: s, Valid: s != ""}
@@ -295,4 +382,3 @@ func boolToInt(b bool) int {
 	}
 	return 0
 }
-

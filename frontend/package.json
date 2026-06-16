@@ -11,6 +11,7 @@
   "dependencies": {
     "@blueprintjs/core": "^6.15.0",
     "@blueprintjs/icons": "^6.10.0",
+    "@blueprintjs/select": "^6.3.0",
     "@hookform/resolvers": "^5.4.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-table": "^8.21.3",

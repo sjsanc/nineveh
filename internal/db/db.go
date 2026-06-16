@@ -2,15 +2,10 @@ package db
 
 import (
 	"database/sql"
-	"embed"
 	"fmt"
 
-	"github.com/pressly/goose/v3"
 	_ "modernc.org/sqlite"
 )
-
-//go:embed migrations/*.sql
-var migrations embed.FS
 
 type DB struct {
 	conn *sql.DB
@@ -36,8 +31,8 @@ func Open(path string) (*DB, error) {
 	}
 
 	d := &DB{conn: conn}
-	if err := d.migrate(); err != nil {
-		return nil, fmt.Errorf("migrate: %w", err)
+	if err := d.initSchema(); err != nil {
+		return nil, fmt.Errorf("init schema: %w", err)
 	}
 	return d, nil
 }
@@ -46,14 +41,9 @@ func (d *DB) Close() error {
 	return d.conn.Close()
 }
 
-func (d *DB) migrate() error {
-	goose.SetBaseFS(migrations)
-	goose.SetLogger(goose.NopLogger())
-	if err := goose.SetDialect("sqlite3"); err != nil {
-		return fmt.Errorf("set dialect: %w", err)
-	}
-	if err := goose.Up(d.conn, "migrations"); err != nil {
-		return fmt.Errorf("run migrations: %w", err)
+func (d *DB) initSchema() error {
+	if _, err := d.conn.Exec(schema); err != nil {
+		return fmt.Errorf("exec schema: %w", err)
 	}
 	return nil
 }

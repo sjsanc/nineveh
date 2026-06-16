@@ -13,6 +13,12 @@ export function DetectDevices():Promise<Array<device.DeviceInfo>>;
 
 export function FetchBookMetadata(arg1:number):Promise<Array<fetcher.FetchedMetadata>>;
 
+export function GetAllAuthors():Promise<Array<string>>;
+
+export function GetAllSeries():Promise<Array<string>>;
+
+export function GetAllTags():Promise<Array<string>>;
+
 export function GetBook(arg1:number):Promise<metadata.Book>;
 
 export function GetBooks():Promise<Array<metadata.Book>>;

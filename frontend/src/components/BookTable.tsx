@@ -15,7 +15,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { Icon, Menu, MenuItem, MenuDivider } from '@blueprintjs/core'
 import { Book, BookFile } from '../types'
 import { DeviceInfo } from '../types'
-import { FORMAT_COLORS, formatDate, deviceColor, buildIndex, matchBook } from '../utils'
+import { formatDate, deviceColor, buildIndex, matchBook } from '../utils'
 
 const Dash = () => <span className="text-zinc-600">—</span>
 
@@ -118,30 +118,6 @@ const COLUMNS: ColumnDef<Book>[] = [
             </span>
           ))}
           {overflow > 0 && <span className="text-[10px] text-zinc-500 shrink-0">+{overflow}</span>}
-        </div>
-      )
-    },
-  },
-  {
-    id: 'formats',
-    header: 'Formats',
-    accessorFn: (row) => row.Formats,
-    enableSorting: false,
-    size: 110,
-    minSize: 70,
-    cell: ({ getValue }) => {
-      const formats = getValue<Book['Formats']>()
-      if (!formats?.length) return <Dash />
-      return (
-        <div className="flex gap-1">
-          {formats.map((f) => (
-            <span
-              key={f.Format}
-              className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide shrink-0 ${FORMAT_COLORS[f.Format] ?? 'bg-zinc-600'} text-white`}
-            >
-              {f.Format}
-            </span>
-          ))}
         </div>
       )
     },

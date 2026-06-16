@@ -1,6 +1,18 @@
 @import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 @import "@blueprintjs/core/lib/css/blueprint.css";
+@import "@blueprintjs/select/lib/css/blueprint-select.css";
 @import "tailwindcss";
+
+/* Blueprint select dropdowns must appear above the app's custom dialogs (z-50) */
+.bp6-overlay-container {
+  z-index: 60;
+}
+
+/* Constrain dropdown list height */
+.bp6-select-popover .bp6-menu {
+  max-height: 200px;
+  overflow-y: auto;
+}
 @plugin "@tailwindcss/typography";
 
 @theme {

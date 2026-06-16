@@ -192,6 +192,10 @@ func (a *App) Search(query string) ([]*metadata.Book, error) {
 	return a.library.Search(query)
 }
 
+func (a *App) GetAllAuthors() ([]string, error) { return a.db.GetAllAuthors() }
+func (a *App) GetAllTags() ([]string, error)    { return a.db.GetAllTags() }
+func (a *App) GetAllSeries() ([]string, error)  { return a.db.GetAllSeries() }
+
 func (a *App) SelectDirectory() (string, error) {
 	return runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
 		Title: "Select Calibre Library",
