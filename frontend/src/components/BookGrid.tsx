@@ -12,6 +12,7 @@ import { GetCoverData } from '../../wailsjs/go/main/App'
 
 const CARD_MIN_WIDTH = 220
 const MIN_COLS = 3
+const MAX_COLS = 12
 const GAP = 12
 const PADDING = 16
 const MIN_GRID_WIDTH = MIN_COLS * CARD_MIN_WIDTH + (MIN_COLS - 1) * GAP + PADDING * 2
@@ -121,7 +122,7 @@ export function BookGrid({
   // When the window is narrower than MIN_COLS cards, use MIN_GRID_WIDTH so rows
   // overflow and the outer container scrolls horizontally.
   const effectiveWidth = Math.max(containerWidth, MIN_GRID_WIDTH)
-  const cols = Math.max(MIN_COLS, Math.floor((effectiveWidth - PADDING * 2 + GAP) / (CARD_MIN_WIDTH + GAP)))
+  const cols = Math.min(MAX_COLS, Math.max(MIN_COLS, Math.floor((effectiveWidth - PADDING * 2 + GAP) / (CARD_MIN_WIDTH + GAP))))
   const cardWidth = (effectiveWidth - PADDING * 2 - GAP * (cols - 1)) / cols
 
   // Covers are portrait 2:3; row height = cover height + inter-row gap + rounding buffer
@@ -221,7 +222,7 @@ export function BookGrid({
 
   return (
     <div ref={containerRef} className="overflow-x-auto overflow-y-auto flex-1">
-      <div style={{ height: rowVirtualizer.getTotalSize(), minWidth: MIN_GRID_WIDTH, position: 'relative' }}>
+      <div style={{ height: rowVirtualizer.getTotalSize(), minWidth: MIN_GRID_WIDTH, position: 'relative', willChange: 'transform' }}>
         {rowVirtualizer.getVirtualItems().map(virtualRow => (
           <div
             key={virtualRow.index}
