@@ -20,12 +20,11 @@ export function EditBookDialog({ book, onClose, onSave }: Props) {
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="bp6-dark fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
         className="bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-800"
-        onMouseDown={e => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex justify-between items-center z-10">
           <h2 className="text-lg font-semibold text-zinc-100">Edit Book Metadata</h2>

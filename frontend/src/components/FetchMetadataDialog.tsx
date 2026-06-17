@@ -186,7 +186,7 @@ export function FetchMetadataDialog({ book, candidates, error, onClose, onSave }
                 <div className="flex items-center gap-3">
                   <span className="text-zinc-400 text-sm">Source:</span>
                   <HTMLSelect
-                    className="bp5-dark"
+                    className="bp6-dark"
                     value={selectedIdx}
                     onChange={e => handleCandidateChange(Number(e.target.value))}
                   >

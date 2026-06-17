@@ -3,9 +3,44 @@
 @import "@blueprintjs/select/lib/css/blueprint-select.css";
 @import "tailwindcss";
 
-/* Blueprint select dropdowns must appear above the app's custom dialogs (z-50) */
-.bp6-overlay-container {
+/* Blueprint select dropdowns must appear above the app's custom dialogs (z-50).
+   .bp6-overlay-content is position:fixed z-index:20 by default — raise it above z-50. */
+.bp6-overlay-content {
   z-index: 60;
+}
+
+/* Match Blueprint dark inputs to the app's zinc color scheme.
+   Blueprint hardcodes height/padding/font-size on .bp6-input so inheritance doesn't reach them. */
+.bp6-dark .bp6-input {
+  background: #27272a; /* zinc-800 */
+  box-shadow: inset 0 0 0 1px #3f3f46; /* zinc-700 border */
+  color: #f4f4f5; /* zinc-100 */
+  border-radius: 4px;
+}
+.bp6-dark .bp6-input::placeholder {
+  color: #71717a; /* zinc-500 */
+}
+.bp6-dark .bp6-input:focus {
+  box-shadow: inset 0 0 0 1px #3f3f46, 0 0 0 2px #2563eb; /* zinc-700 border + blue-600 ring */
+  outline: none;
+}
+/* Suggest input: override Blueprint's fixed height:30px to match our py-2 px-3 inputs */
+.bp6-dark .bp6-input:not(.bp6-tag-input) {
+  height: auto;
+  line-height: 1.5;
+  padding: 8px 12px;
+}
+/* TagInput (MultiSelect): has its own internal padding — only fix min-height and active ring */
+.bp6-dark .bp6-tag-input {
+  min-height: 38px;
+}
+.bp6-dark .bp6-tag-input.bp6-active {
+  box-shadow: inset 0 0 0 1px #3f3f46, 0 0 0 2px #2563eb;
+}
+/* Selected tags inside TagInput */
+.bp6-dark .bp6-tag-input .bp6-tag {
+  background-color: #3f3f46; /* zinc-700 */
+  color: #d4d4d8; /* zinc-300 */
 }
 
 /* Constrain dropdown list height */

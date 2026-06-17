@@ -12,7 +12,7 @@ interface Props {
 
 export function Sidebar({ isLibraryActive, isDevicesActive, hasDevices, onSelectLibrary, onSelectDevices, onRescan, onSettingsOpen }: Props) {
   return (
-    <div className="w-12 shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col items-center py-2 gap-1">
+    <div className="w-12 shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col items-center py-2 gap-2">
       <button
         onClick={onSelectLibrary}
         title="Library"

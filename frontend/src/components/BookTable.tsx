@@ -56,6 +56,8 @@ const bookFilterFn: FilterFn<Book> = (row, _colId, value) => {
   )
 }
 
+const MIN_TABLE_WIDTH = 640
+
 const COLUMNS: ColumnDef<Book>[] = [
   {
     id: 'index',
@@ -263,7 +265,8 @@ export function BookTable({
     overscan: 5,
   })
   const { items: virtualItems, paddingTop, paddingBottom } = virtualPadding(rowVirtualizer)
-  const colWidth = makeColWidth(table, containerWidth)
+  const effectiveWidth = Math.max(containerWidth || 0, MIN_TABLE_WIDTH)
+  const colWidth = makeColWidth(table, effectiveWidth)
 
   function handleRowClick(e: React.MouseEvent, book: Book, rowIndex: number) {
     if (!onSelectionChange) {
@@ -337,8 +340,17 @@ export function BookTable({
           placeholder="Search title, author or series…"
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
-          className="flex-1 text-[16px] line-height bg-transparent text-zinc-200 placeholder-zinc-500 outline-2 outline-hidden m-1 h-8 pr-3"
+          className="flex-1 text-[16px] line-height bg-transparent text-zinc-200 placeholder-zinc-500 outline-2 outline-hidden m-1 h-8"
         />
+        {inputValue && (
+          <button
+            onClick={() => setInputValue('')}
+            className="flex items-center justify-center w-7 h-7 my-auto mr-1 shrink-0 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+            title="Clear search"
+          >
+            <Icon icon="cross" size={14} />
+          </button>
+        )}
         {selectionCount > 1 && (
           <span className="flex items-center pr-3 shrink-0">
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-300">
@@ -347,11 +359,12 @@ export function BookTable({
           </span>
         )}
       </div>
-      <div ref={containerRef} className="overflow-x-hidden overflow-y-auto flex-1">
+      <div ref={containerRef} className="overflow-x-auto overflow-y-auto flex-1">
         <table
           className="text-sm text-zinc-200"
           style={{
-            width: containerWidth || '100%',
+            width: effectiveWidth || '100%',
+            minWidth: MIN_TABLE_WIDTH,
             tableLayout: 'fixed',
             borderCollapse: 'separate',
             borderSpacing: 0,
@@ -402,7 +415,7 @@ export function BookTable({
       {ctxMenu && ReactDOM.createPortal(
         <div
           id="book-ctx-menu"
-          className="bp5-dark"
+          className="bp6-dark"
           style={{ position: 'fixed', left: ctxMenu.x, top: ctxMenu.y, zIndex: 1000 }}
         >
           <Menu>

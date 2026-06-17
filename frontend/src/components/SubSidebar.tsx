@@ -17,7 +17,7 @@ interface Props {
 
 export function SubSidebar({ activeSection, onImport, onAdd, onReset, importStatus, devices, activeDeviceID, deviceLetterMap, onSelectDevice, isLoadingDeviceBooks }: Props) {
   return (
-    <div className="w-12 shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col items-center py-2 gap-1">
+    <div className="w-12 shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col items-center py-2 gap-2">
       {activeSection === 'library' && (
         <>
           <button

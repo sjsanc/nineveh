@@ -226,7 +226,7 @@ export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice
       {ctxMenu && ReactDOM.createPortal(
         <div
           id="device-ctx-menu"
-          className="bp5-dark"
+          className="bp6-dark"
           style={{ position: 'fixed', left: ctxMenu.x, top: ctxMenu.y, zIndex: 1000 }}
         >
           <Menu>

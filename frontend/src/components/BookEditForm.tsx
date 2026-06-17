@@ -76,7 +76,7 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
   const [allSeries, setAllSeries] = useState<string[]>([])
   const coverSrc = useCoverImage(book.CoverPath || undefined, GetCoverData)
 
-  const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { control, handleSubmit, reset, formState: { errors, isSubmitting, isDirty } } = useForm<FormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema) as any,
     defaultValues: toFormValues(book),
@@ -184,6 +184,7 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
                 )}
                 noResults={<MenuItem disabled text="No results" roleStructure="listoption" />}
                 inputProps={{ placeholder: 'Series name' }}
+                popoverProps={{ popoverClassName: 'bp6-dark' }}
               />
             )}
           />
@@ -319,8 +320,8 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
         </button>
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
+          disabled={isSubmitting || !isDirty}
+          className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Saving…' : 'Save'}
         </button>
