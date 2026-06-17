@@ -7,9 +7,10 @@ interface Props {
   onSelectLibrary: () => void
   onSelectDevices: () => void
   onRescan: () => void
+  onSettingsOpen: () => void
 }
 
-export function Sidebar({ isLibraryActive, isDevicesActive, hasDevices, onSelectLibrary, onSelectDevices, onRescan }: Props) {
+export function Sidebar({ isLibraryActive, isDevicesActive, hasDevices, onSelectLibrary, onSelectDevices, onRescan, onSettingsOpen }: Props) {
   return (
     <div className="w-12 shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col items-center py-2 gap-1">
       <button
@@ -44,6 +45,13 @@ export function Sidebar({ isLibraryActive, isDevicesActive, hasDevices, onSelect
         className="w-9 h-9 flex items-center justify-center rounded text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800 transition-colors"
       >
         <Icon icon="refresh" size={16} />
+      </button>
+      <button
+        onClick={onSettingsOpen}
+        title="Settings"
+        className="w-9 h-9 flex items-center justify-center rounded text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800 transition-colors"
+      >
+        <Icon icon="cog" size={16} />
       </button>
     </div>
   )

@@ -14,11 +14,17 @@ type ColumnPrefs struct {
 	Widths  map[string]int `json:"widths"`
 }
 
+type FetchSourcePrefs struct {
+	OpenLibraryEnabled bool `json:"openLibraryEnabled"`
+	GoogleBooksEnabled bool `json:"googleBooksEnabled"`
+}
+
 type Preferences struct {
-	LibraryRoot       string      `json:"libraryRoot"`
-	DetailsPaneWidth  int         `json:"detailsPaneWidth"`
-	Columns           ColumnPrefs `json:"columns"`
-	GoogleBooksAPIKey string      `json:"googleBooksApiKey"`
+	LibraryRoot       string          `json:"libraryRoot"`
+	DetailsPaneWidth  int             `json:"detailsPaneWidth"`
+	Columns           ColumnPrefs     `json:"columns"`
+	GoogleBooksAPIKey string          `json:"googleBooksApiKey"`
+	FetchSources      FetchSourcePrefs `json:"fetchSources"`
 }
 
 var defaults = Preferences{
@@ -26,6 +32,10 @@ var defaults = Preferences{
 	Columns: ColumnPrefs{
 		Visible: []string{"index", "isRead", "title", "authors", "series", "tags", "formats", "rating", "datePublished", "dateAdded"},
 		Widths:  map[string]int{},
+	},
+	FetchSources: FetchSourcePrefs{
+		OpenLibraryEnabled: true,
+		GoogleBooksEnabled: true,
 	},
 }
 

@@ -29,13 +29,13 @@ func (ol *openLibrary) fetch(ctx context.Context, book *metadata.Book) ([]Fetche
 type olBooksResponse map[string]olBookData
 
 type olBookData struct {
-	Title       string       `json:"title"`
-	Authors     []olAuthor   `json:"authors"`
-	Publishers  []olNamed    `json:"publishers"`
-	Subjects    []olNamed    `json:"subjects"`
-	PublishDate string       `json:"publish_date"`
+	Title       string        `json:"title"`
+	Authors     []olAuthor    `json:"authors"`
+	Publishers  []olNamed     `json:"publishers"`
+	Subjects    []olNamed     `json:"subjects"`
+	PublishDate string        `json:"publish_date"`
 	Identifiers olIdentifiers `json:"identifiers"`
-	Cover       olCover      `json:"cover"`
+	Cover       olCover       `json:"cover"`
 }
 
 type olAuthor struct {

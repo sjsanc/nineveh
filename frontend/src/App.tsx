@@ -7,6 +7,7 @@ import { DeviceTable } from './components/DeviceTable'
 import { DevicePanel } from './components/DevicePanel'
 import { EditBookDialog } from './components/EditBookDialog'
 import { FetchMetadataDialog } from './components/FetchMetadataDialog'
+import { SettingsDialog } from './components/SettingsDialog'
 import { Sidebar } from './components/Sidebar'
 import { SubSidebar } from './components/SubSidebar'
 import { Book, BookFile, DeviceInfo, FetchedMetadata, metadata } from './types'
@@ -31,6 +32,7 @@ function App() {
   const [deviceLetterMap, setDeviceLetterMap] = useState<Map<string, string>>(new Map())
   const [deviceBooks, setDeviceBooks] = useState<BookFile[]>([])
   const [activeSection, setActiveSection] = useState<'library' | 'devices'>('library')
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [selectedDeviceFile, setSelectedDeviceFile] = useState<BookFile | null>(null)
   const [isLoadingDeviceBooks, setIsLoadingDeviceBooks] = useState(false)
 
@@ -299,6 +301,7 @@ function App() {
         onSelectLibrary={handleSelectLibrary}
         onSelectDevices={handleSelectDevices}
         onRescan={handleRescanDevices}
+        onSettingsOpen={() => setSettingsOpen(true)}
       />
       <SubSidebar
         activeSection={activeSection}
@@ -389,6 +392,7 @@ function App() {
           />
         </ErrorBoundary>
       )}
+      {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
     </div>
   )
 }

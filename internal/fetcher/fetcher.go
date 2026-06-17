@@ -24,7 +24,9 @@ type FetchedMetadata struct {
 }
 
 type Config struct {
-	GoogleBooksAPIKey string
+	GoogleBooksAPIKey  string
+	OpenLibraryEnabled bool
+	GoogleBooksEnabled bool
 }
 
 type source interface {
@@ -33,8 +35,11 @@ type source interface {
 
 // FetchCandidates queries all enabled sources and returns up to 5 candidates.
 func FetchCandidates(ctx context.Context, book *metadata.Book, cfg Config) ([]FetchedMetadata, error) {
-	sources := []source{&openLibrary{}}
-	if cfg.GoogleBooksAPIKey != "" {
+	var sources []source
+	if cfg.OpenLibraryEnabled {
+		sources = append(sources, &openLibrary{})
+	}
+	if cfg.GoogleBooksEnabled && cfg.GoogleBooksAPIKey != "" {
 		sources = append(sources, &googleBooks{apiKey: cfg.GoogleBooksAPIKey})
 	}
 

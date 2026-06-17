@@ -165,11 +165,26 @@ export namespace prefs {
 	        this.widths = source["widths"];
 	    }
 	}
+	export class FetchSourcePrefs {
+	    openLibraryEnabled: boolean;
+	    googleBooksEnabled: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new FetchSourcePrefs(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.openLibraryEnabled = source["openLibraryEnabled"];
+	        this.googleBooksEnabled = source["googleBooksEnabled"];
+	    }
+	}
 	export class Preferences {
 	    libraryRoot: string;
 	    detailsPaneWidth: number;
 	    columns: ColumnPrefs;
 	    googleBooksApiKey: string;
+	    fetchSources: FetchSourcePrefs;
 	
 	    static createFrom(source: any = {}) {
 	        return new Preferences(source);
@@ -181,6 +196,7 @@ export namespace prefs {
 	        this.detailsPaneWidth = source["detailsPaneWidth"];
 	        this.columns = this.convertValues(source["columns"], ColumnPrefs);
 	        this.googleBooksApiKey = source["googleBooksApiKey"];
+	        this.fetchSources = this.convertValues(source["fetchSources"], FetchSourcePrefs);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -139,8 +139,11 @@ func (a *App) FetchBookMetadata(bookID int64) ([]fetcher.FetchedMetadata, error)
 	if err != nil {
 		return nil, err
 	}
+	p := a.prefs.Get()
 	cfg := fetcher.Config{
-		GoogleBooksAPIKey: a.prefs.Get().GoogleBooksAPIKey,
+		GoogleBooksAPIKey:  p.GoogleBooksAPIKey,
+		OpenLibraryEnabled: p.FetchSources.OpenLibraryEnabled,
+		GoogleBooksEnabled: p.FetchSources.GoogleBooksEnabled,
 	}
 	return fetcher.FetchCandidates(a.ctx, book, cfg)
 }

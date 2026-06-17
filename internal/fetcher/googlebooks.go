@@ -50,8 +50,7 @@ func (gb *googleBooks) fetch(ctx context.Context, book *metadata.Book) ([]Fetche
 
 	var results []FetchedMetadata
 	for _, item := range resp.Items {
-		m := gbItemToMeta(item)
-		results = append(results, m)
+		results = append(results, gbItemToMeta(item))
 	}
 	return results, nil
 }
