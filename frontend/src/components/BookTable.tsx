@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { BookGrid } from './BookGrid'
 import ReactDOM from 'react-dom'
 import {
   ColumnDef,
@@ -184,6 +185,9 @@ export function BookTable({
   columnWidths = {},
   onColumnWidthsChange,
 }: Props) {
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>(
+    () => (localStorage.getItem('viewMode') as 'table' | 'grid') || 'table'
+  )
   const [sorting, setSorting] = useState<SortingState>([])
   const [inputValue, setInputValue] = useState('')
   const [globalFilter, setGlobalFilter] = useState('')
@@ -352,14 +356,49 @@ export function BookTable({
           </button>
         )}
         {selectionCount > 1 && (
-          <span className="flex items-center pr-3 shrink-0">
+          <span className="flex items-center pr-2 shrink-0">
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-300">
               {selectionCount} selected
             </span>
           </span>
         )}
+        <div className="flex items-center gap-0.5 px-2 border-l border-zinc-800 shrink-0">
+          <button
+            onClick={() => { setViewMode('table'); localStorage.setItem('viewMode', 'table') }}
+            className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${viewMode === 'table' ? 'text-zinc-200 bg-zinc-700' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'}`}
+            title="Table view"
+          >
+            <Icon icon="th-list" size={14} />
+          </button>
+          <button
+            onClick={() => { setViewMode('grid'); localStorage.setItem('viewMode', 'grid') }}
+            className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${viewMode === 'grid' ? 'text-zinc-200 bg-zinc-700' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'}`}
+            title="Grid view"
+          >
+            <Icon icon="th" size={14} />
+          </button>
+        </div>
       </div>
-      <div ref={containerRef} className="overflow-x-auto overflow-y-auto flex-1">
+      {viewMode === 'grid' ? (
+        <BookGrid
+          books={rows.map(r => r.original)}
+          selectedBookId={selectedBookId}
+          selectedBookIds={selectedBookIds}
+          onSelectBook={onSelectBook}
+          onSelectionChange={onSelectionChange}
+          onDoubleClickBook={onDoubleClickBook}
+          devices={devices}
+          activeDeviceID={activeDeviceID}
+          deviceLetterMap={deviceLetterMap}
+          deviceBooks={deviceBooks}
+          onSendToDevice={onSendToDevice}
+          onEditBook={onEditBook}
+          onFetchMetadata={onFetchMetadata}
+          onToggleRead={onToggleRead}
+          onRemoveBooks={onRemoveBooks}
+        />
+      ) : null}
+      <div ref={containerRef} className={`overflow-x-auto overflow-y-auto flex-1 ${viewMode === 'grid' ? 'hidden' : ''}`}>
         <table
           className="text-sm text-zinc-200"
           style={{
