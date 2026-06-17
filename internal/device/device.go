@@ -10,6 +10,7 @@ type Device interface {
 	ListBooks() ([]*metadata.BookFile, error)
 	SendBook(book *metadata.Book, format metadata.Format) error
 	RemoveBook(path string) error
+	Eject() error
 }
 
 // DeviceInfo is a JSON-serializable summary of a connected device.

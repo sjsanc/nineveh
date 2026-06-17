@@ -11,6 +11,8 @@ export function DeleteBook(arg1:number):Promise<void>;
 
 export function DetectDevices():Promise<Array<device.DeviceInfo>>;
 
+export function EjectDevice(arg1:string):Promise<void>;
+
 export function FetchBookMetadata(arg1:number):Promise<Array<fetcher.FetchedMetadata>>;
 
 export function GetAllAuthors():Promise<Array<string>>;

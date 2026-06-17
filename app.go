@@ -278,8 +278,35 @@ func (a *App) cachedDevices() []device.Device {
 	return a.devices
 }
 
+func (a *App) refreshDevices() {
+	detected, err := device.Detect()
+	if err != nil {
+		return
+	}
+	a.devicesMu.Lock()
+	prev := deviceSet(a.devices)
+	a.devices = detected
+	a.devicesMu.Unlock()
+
+	if !deviceSetsEqual(deviceSet(detected), prev) {
+		runtime.EventsEmit(a.ctx, "devices:changed", deviceInfos(detected))
+	}
+}
+
 func (a *App) watchDevices() {
-	last := map[string]bool{}
+	// Polling runs always: ensures eventual consistency when a uevent fires before
+	// the block device is fully ready to mount (e.g. immediately after reconnect).
+	go a.watchDevicesPoll()
+
+	// Uevent listener gives fast response on connect/disconnect.
+	if err := device.ListenUevents(a.ctx, func(_ string) {
+		a.refreshDevices()
+	}); err != nil {
+		slog.Warn("uevent listener unavailable", "err", err)
+	}
+}
+
+func (a *App) watchDevicesPoll() {
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 	for {
@@ -287,27 +314,62 @@ func (a *App) watchDevices() {
 		case <-a.ctx.Done():
 			return
 		case <-ticker.C:
-			detected, err := device.Detect()
-			if err != nil {
-				continue
-			}
-			a.devicesMu.Lock()
-			a.devices = detected
-			a.devicesMu.Unlock()
-
-			current := make(map[string]bool, len(detected))
-			infos := make([]device.DeviceInfo, len(detected))
-			for i, d := range detected {
-				current[d.ID()] = true
-				free, _ := d.FreeSpace()
-				infos[i] = device.DeviceInfo{ID: d.ID(), Name: d.Name(), FreeSpace: free}
-			}
-			if !deviceSetsEqual(current, last) {
-				last = current
-				runtime.EventsEmit(a.ctx, "devices:changed", infos)
-			}
+			a.refreshDevices()
 		}
 	}
+}
+
+func (a *App) EjectDevice(deviceID string) error {
+	a.devicesMu.RLock()
+	idx := -1
+	for i, d := range a.devices {
+		if d.ID() == deviceID {
+			idx = i
+			break
+		}
+	}
+	var dev device.Device
+	if idx >= 0 {
+		dev = a.devices[idx]
+	}
+	a.devicesMu.RUnlock()
+
+	if dev == nil {
+		return fmt.Errorf("device %s not found", deviceID)
+	}
+	if err := dev.Eject(); err != nil {
+		return err
+	}
+
+	a.devicesMu.Lock()
+	for i, d := range a.devices {
+		if d.ID() == deviceID {
+			a.devices = append(a.devices[:i], a.devices[i+1:]...)
+			break
+		}
+	}
+	infos := deviceInfos(a.devices)
+	a.devicesMu.Unlock()
+
+	runtime.EventsEmit(a.ctx, "devices:changed", infos)
+	return nil
+}
+
+func deviceSet(devices []device.Device) map[string]bool {
+	s := make(map[string]bool, len(devices))
+	for _, d := range devices {
+		s[d.ID()] = true
+	}
+	return s
+}
+
+func deviceInfos(devices []device.Device) []device.DeviceInfo {
+	infos := make([]device.DeviceInfo, len(devices))
+	for i, d := range devices {
+		free, _ := d.FreeSpace()
+		infos[i] = device.DeviceInfo{ID: d.ID(), Name: d.Name(), FreeSpace: free}
+	}
+	return infos
 }
 
 func deviceSetsEqual(a, b map[string]bool) bool {

@@ -41,29 +41,34 @@ func Detect() ([]Device, error) {
 
 		// The product attribute may report a storage description (e.g. "Internal Storage")
 		// rather than a device name. For any Amazon vendor device we use "Kindle".
-		mountPoint, _ := findMountPoint(devPath)
-		devices = append(devices, &mtpDevice{id: id, name: "Kindle", mountPoint: mountPoint})
+		mountPoint, partDev, blockDev, _ := findMountPoint(devPath)
+		if mountPoint == "" {
+			continue // skip devices that couldn't be mounted
+		}
+		devices = append(devices, &mtpDevice{id: id, name: "Kindle", mountPoint: mountPoint, partDev: partDev, blockDev: blockDev})
 	}
 	return devices, nil
 }
 
 // findMountPoint resolves a USB device's sysfs path to a mounted filesystem path.
 // It follows the sysfs chain: USB device → SCSI host → block device → /proc/mounts.
-func findMountPoint(devPath string) (string, error) {
+// Returns the mount point, the mounted partition path (e.g. /dev/sda1, for unmount),
+// and the disk path (e.g. /dev/sda, for power-off).
+func findMountPoint(devPath string) (mountPoint, partDev, blockDev string, err error) {
 	realPath, err := filepath.EvalSymlinks(devPath)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 
 	// USB mass storage: <devPath>/<iface>/host<N>/target<N>:0:0/<N>:0:0:0/block
 	matches, err := filepath.Glob(filepath.Join(realPath, "*", "*", "*", "*", "block"))
 	if err != nil || len(matches) == 0 {
-		return "", nil
+		return "", "", "", nil
 	}
 
 	blockEntries, err := os.ReadDir(matches[0])
 	if err != nil || len(blockEntries) == 0 {
-		return "", nil
+		return "", "", "", nil
 	}
 	diskName := blockEntries[0].Name()
 
@@ -81,7 +86,7 @@ func findMountPoint(devPath string) (string, error) {
 
 	for _, name := range candidates {
 		if mp, err := mountPointForDevice("/dev/" + name); err == nil && mp != "" {
-			return mp, nil
+			return mp, "/dev/" + name, "/dev/" + diskName, nil
 		}
 	}
 
@@ -93,10 +98,10 @@ func findMountPoint(devPath string) (string, error) {
 			continue
 		}
 		if mp, err := mountPointForDevice("/dev/" + name); err == nil && mp != "" {
-			return mp, nil
+			return mp, "/dev/" + name, "/dev/" + diskName, nil
 		}
 	}
-	return "", nil
+	return "", "", "", nil
 }
 
 // mountPointForDevice reads /proc/mounts and returns the mount point for the given block device.

@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -32,6 +33,8 @@ type mtpDevice struct {
 	id         string
 	name       string
 	mountPoint string
+	partDev    string // e.g. "/dev/sda1" — used for udisksctl unmount
+	blockDev   string // e.g. "/dev/sda"  — used for udisksctl power-off
 }
 
 func (d *mtpDevice) ID() string   { return d.id }
@@ -102,6 +105,24 @@ func (d *mtpDevice) SendBook(book *metadata.Book, format metadata.Format) error 
 
 func (d *mtpDevice) RemoveBook(path string) error {
 	return os.Remove(path)
+}
+
+func (d *mtpDevice) Eject() error {
+	if d.blockDev == "" {
+		return fmt.Errorf("cannot eject: block device unknown")
+	}
+	if d.partDev != "" {
+		cmd := exec.Command("udisksctl", "unmount", "-b", d.partDev, "--no-user-interaction")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return fmt.Errorf("unmount failed: %s: %w", strings.TrimSpace(string(out)), err)
+		}
+	}
+	cmd := exec.Command("udisksctl", "power-off", "-b", d.blockDev, "--no-user-interaction")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("eject failed: %s: %w", strings.TrimSpace(string(out)), err)
+	}
+	return nil
 }
 
 func copyFile(src, dst string) error {

@@ -14,6 +14,10 @@ export function DetectDevices() {
   return window['go']['main']['App']['DetectDevices']();
 }
 
+export function EjectDevice(arg1) {
+  return window['go']['main']['App']['EjectDevice'](arg1);
+}
+
 export function FetchBookMetadata(arg1) {
   return window['go']['main']['App']['FetchBookMetadata'](arg1);
 }

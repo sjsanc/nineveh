@@ -11,7 +11,7 @@ import { SettingsDialog } from './components/SettingsDialog'
 import { Sidebar } from './components/Sidebar'
 import { SubSidebar } from './components/SubSidebar'
 import { Book, BookFile, DeviceInfo, FetchedMetadata, metadata } from './types'
-import { GetBooks, SelectDirectory, SelectFiles, ImportFile, ImportFromCalibre, ResetLibrary, DetectDevices, ListDeviceBooks, SendBook, UpdateBook, DeleteBook, RemoveFromDevice, FetchBookMetadata } from '../wailsjs/go/main/App'
+import { GetBooks, SelectDirectory, SelectFiles, ImportFile, ImportFromCalibre, ResetLibrary, DetectDevices, ListDeviceBooks, SendBook, UpdateBook, DeleteBook, RemoveFromDevice, FetchBookMetadata, EjectDevice } from '../wailsjs/go/main/App'
 import { EventsOn } from '../wailsjs/runtime/runtime'
 import { ErrorBoundary } from './components/ErrorBoundary'
 
@@ -221,6 +221,20 @@ function App() {
     showStatus(`Removed ${removed} book${removed === 1 ? '' : 's'}`)
   }
 
+  async function handleEjectDevice(deviceID: string) {
+    try {
+      await EjectDevice(deviceID)
+      setActiveDeviceID(null)
+      setDeviceBooks([])
+      setSelectedDeviceFile(null)
+      setActiveSection('library')
+      showStatus('Device ejected safely')
+    } catch (err) {
+      showStatus(`Eject failed: ${err}`)
+      console.error(err)
+    }
+  }
+
   async function handleRemoveFromDevice(paths: string[]) {
     if (!activeDeviceID) return
     try {
@@ -326,6 +340,7 @@ function App() {
                 isLoading={isLoadingDeviceBooks}
                 onRemoveFromDevice={handleRemoveFromDevice}
                 onSelectFile={setSelectedDeviceFile}
+                onEject={activeDeviceID ? () => handleEjectDevice(activeDeviceID) : undefined}
               />
               {selectedDeviceFile && (
                 <DevicePanel

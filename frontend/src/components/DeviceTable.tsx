@@ -28,6 +28,7 @@ interface Props {
   isLoading?: boolean
   onRemoveFromDevice?: (paths: string[]) => void
   onSelectFile?: (file: BookFile | null) => void
+  onEject?: () => void
 }
 
 function makeColumns(index: Map<string, Book>): ColumnDef<BookFile>[] {
@@ -98,7 +99,7 @@ function makeColumns(index: Map<string, Book>): ColumnDef<BookFile>[] {
   ]
 }
 
-export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice, onSelectFile }: Props) {
+export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice, onSelectFile, onEject }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set())
   const [ctxMenu, setCtxMenu] = useDismissableContextMenu('device-ctx-menu')
@@ -164,6 +165,15 @@ export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Free Space</span>
               <span className="text-sm text-zinc-200 font-medium">{formatSize(device.FreeSpace)}</span>
             </div>
+          )}
+          {onEject && (
+            <button
+              onClick={onEject}
+              title="Eject device"
+              className="ml-auto w-8 h-8 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+            >
+              <Icon icon="eject" size={16} />
+            </button>
           )}
         </div>
       )}
