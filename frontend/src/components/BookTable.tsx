@@ -205,7 +205,7 @@ export function BookTable({
     const index = buildIndex(data)
     const ids = new Set<number>()
     for (const f of deviceBooks) {
-      const match = matchBook(f.Path, index)
+      const match = matchBook(f, index)
       if (match) ids.add(match.ID as number)
     }
     return ids

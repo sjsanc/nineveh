@@ -43,14 +43,14 @@ function makeColumns(index: Map<string, Book>): ColumnDef<BookFile>[] {
     {
       id: 'title',
       header: 'Title',
-      accessorFn: (row) => matchBook(row.Path, index)?.Title ?? (row.Title || stemOf(row.Path)),
+      accessorFn: (row) => matchBook(row, index)?.Title ?? (row.Title || stemOf(row.Path)),
       size: 280,
       minSize: 100,
     },
     {
       id: 'authors',
       header: 'Author(s)',
-      accessorFn: (row) => matchBook(row.Path, index)?.Authors?.join(', ') ?? row.Authors?.join(', ') ?? '',
+      accessorFn: (row) => matchBook(row, index)?.Authors?.join(', ') ?? row.Authors?.join(', ') ?? '',
       size: 160,
       minSize: 80,
       cell: ({ getValue }) => getValue<string>() || <Dash />,
@@ -75,10 +75,9 @@ function makeColumns(index: Map<string, Book>): ColumnDef<BookFile>[] {
     {
       id: 'inLibrary',
       header: 'In Library',
-      enableSorting: false,
       size: 80,
       minSize: 60,
-      accessorFn: (row) => matchBook(row.Path, index) != null,
+      accessorFn: (row) => matchBook(row, index) != null,
       cell: ({ getValue }) =>
         getValue<boolean>() ? (
           <Icon icon="tick-circle" size={14} className="text-emerald-500" />

@@ -1,4 +1,4 @@
-import { Book } from './types'
+import { Book, BookFile } from './types'
 
 export const DEVICE_COLORS = [
   '#38bdf8', // A
@@ -65,20 +65,22 @@ export function stemOf(path: string): string {
 export function buildIndex(books: Book[]): Map<string, Book> {
   const map = new Map<string, Book>()
   for (const book of books) {
+    map.set(book.Title.toLowerCase().trim(), book)
     for (const f of book.Formats ?? []) {
       map.set(stemOf(f.Path), book)
     }
-    map.set(book.Title.toLowerCase().trim(), book)
   }
   return map
 }
 
-export function matchBook(devicePath: string, index: Map<string, Book>): Book | undefined {
-  const stem = stemOf(devicePath)
-  if (index.has(stem)) return index.get(stem)
-  const titlePart = stem.split(' - ')[0].trim()
-  if (titlePart && index.has(titlePart)) return index.get(titlePart)
-  return undefined
+export function matchBook(file: BookFile, index: Map<string, Book>): Book | undefined {
+  // Prefer embedded metadata title — it's the same string the library was built from
+  if (file.Title) {
+    const hit = index.get(file.Title.toLowerCase().trim())
+    if (hit) return hit
+  }
+  // Fallback: match by file stem (covers files that failed to parse)
+  return index.get(stemOf(file.Path))
 }
 
 const HTML_TAG_RE = /<\/?[a-z][\s\S]*?>/i

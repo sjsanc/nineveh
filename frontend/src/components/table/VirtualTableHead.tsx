@@ -15,7 +15,7 @@ export function VirtualTableHead<T>({ table, colWidth }: Props<T>) {
             <th
               key={header.id}
               className="relative text-left px-3 py-2 font-medium text-zinc-400 border-b border-zinc-700 select-none whitespace-nowrap"
-              style={{ width: colWidth(header.getSize()) }}
+              style={{ width: colWidth(header.getSize()), minWidth: '3ch' }}
             >
               <div
                 className={`flex items-center justify-between gap-1 ${header.column.getCanSort() ? 'cursor-pointer hover:text-zinc-100' : ''}`}

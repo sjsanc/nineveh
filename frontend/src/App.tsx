@@ -113,7 +113,6 @@ function App() {
 
   function handleSelectLibrary() {
     setActiveSection('library')
-    setActiveDeviceID(null)
     setSelectedDeviceFile(null)
   }
 

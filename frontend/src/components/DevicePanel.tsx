@@ -19,7 +19,7 @@ export function DevicePanel({ file, books, width, onWidthChange }: Props) {
   const handleDragMouseDown = useResizablePanel(width, onWidthChange)
 
   const index = useMemo(() => buildIndex(books), [books])
-  const book = matchBook(file.Path, index)
+  const book = matchBook(file, index)
 
   // Library-matched files use the library cover; unmatched files fall back to
   // a cover extracted directly from the device file.
