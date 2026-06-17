@@ -11,7 +11,7 @@ import { SettingsDialog } from './components/SettingsDialog'
 import { Sidebar } from './components/Sidebar'
 import { SubSidebar } from './components/SubSidebar'
 import { Book, BookFile, DeviceInfo, FetchedMetadata, metadata } from './types'
-import { GetBooks, SelectDirectory, SelectFiles, ImportFile, ImportFromCalibre, ResetLibrary, DetectDevices, ListDeviceBooks, SendBook, UpdateBook, DeleteBook, RemoveFromDevice, FetchBookMetadata, EjectDevice } from '../wailsjs/go/main/App'
+import { GetBooks, SelectDirectory, SelectFiles, ImportFile, ImportFromCalibre, ResetLibrary, DetectDevices, ListDeviceBooks, SendBook, UpdateBook, DeleteBook, RemoveFromDevice, FetchBookMetadata, EjectDevice, OpenBook } from '../wailsjs/go/main/App'
 import { EventsOn } from '../wailsjs/runtime/runtime'
 import { ErrorBoundary } from './components/ErrorBoundary'
 
@@ -289,6 +289,15 @@ function App() {
     }
   }
 
+  async function handleOpenBook(bookId: number, format: string) {
+    try {
+      await OpenBook(bookId, format)
+    } catch (err) {
+      showStatus(`Failed to open book: ${err}`)
+      console.error(err)
+    }
+  }
+
   async function handleResetLibrary() {
     if (!confirm('Reset library? This clears all books and covers from the database.')) return
     try {
@@ -360,7 +369,7 @@ function App() {
                 selectedBookIds={selectedBookIds}
                 onSelectBook={setSelectedBook}
                 onSelectionChange={handleSelectionChange}
-                onDoubleClickBook={setEditingBook}
+                onDoubleClickBook={book => book.Formats?.length && handleOpenBook(book.ID as number, book.Formats[0].Format)}
                 devices={devices}
                 activeDeviceID={activeDeviceID}
                 deviceLetterMap={deviceLetterMap}
@@ -370,6 +379,7 @@ function App() {
                 onFetchMetadata={handleFetchMetadata}
                 onToggleRead={handleToggleRead}
                 onRemoveBooks={handleRemoveBooks}
+                onOpenBook={handleOpenBook}
                 columnWidths={appPrefs.columns?.widths ?? {}}
                 onColumnWidthsChange={widths => updatePrefs(new prefs.Preferences({ ...appPrefs, columns: { ...appPrefs.columns, widths } }))}
               />
@@ -379,6 +389,7 @@ function App() {
                   book={selectedBook}
                   width={appPrefs.detailsPaneWidth || 288}
                   onWidthChange={w => updatePrefs(new prefs.Preferences({ ...appPrefs, detailsPaneWidth: w }))}
+                  onOpenBook={handleOpenBook}
                 />
               )}
             </div>

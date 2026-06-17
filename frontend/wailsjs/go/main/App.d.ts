@@ -39,6 +39,8 @@ export function ImportFromCalibre(arg1:string):Promise<Array<metadata.Book>>;
 
 export function ListDeviceBooks(arg1:string):Promise<Array<metadata.BookFile>>;
 
+export function OpenBook(arg1:number,arg2:string):Promise<void>;
+
 export function RemoveFromDevice(arg1:string,arg2:Array<string>):Promise<void>;
 
 export function ResetLibrary():Promise<void>;

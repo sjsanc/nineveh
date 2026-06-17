@@ -185,6 +185,7 @@ export namespace prefs {
 	    columns: ColumnPrefs;
 	    googleBooksApiKey: string;
 	    fetchSources: FetchSourcePrefs;
+	    readerApps: Record<string, string>;
 	
 	    static createFrom(source: any = {}) {
 	        return new Preferences(source);
@@ -197,6 +198,7 @@ export namespace prefs {
 	        this.columns = this.convertValues(source["columns"], ColumnPrefs);
 	        this.googleBooksApiKey = source["googleBooksApiKey"];
 	        this.fetchSources = this.convertValues(source["fetchSources"], FetchSourcePrefs);
+	        this.readerApps = source["readerApps"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

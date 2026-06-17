@@ -3,6 +3,9 @@ import { createPortal } from 'react-dom'
 import { Switch, InputGroup, Callout } from '@blueprintjs/core'
 import { prefs } from '../../wailsjs/go/models'
 import { usePrefs } from '../prefsContext'
+import { FORMAT_COLORS } from '../utils'
+
+const READER_FORMATS = ['epub', 'pdf', 'mobi', 'azw', 'azw3'] as const
 
 interface Props {
   onClose: () => void
@@ -29,6 +32,13 @@ export function SettingsDialog({ onClose }: Props) {
 
   function setAPIKey(key: string) {
     updatePrefs(new prefs.Preferences({ ...appPrefs, googleBooksApiKey: key }))
+  }
+
+  function setReaderApp(format: string, value: string) {
+    updatePrefs(new prefs.Preferences({
+      ...appPrefs,
+      readerApps: { ...(appPrefs.readerApps ?? {}), [format]: value },
+    }))
   }
 
   const { openLibraryEnabled, googleBooksEnabled } = appPrefs.fetchSources ?? { openLibraryEnabled: true, googleBooksEnabled: true }
@@ -105,6 +115,24 @@ export function SettingsDialog({ onClose }: Props) {
                 </div>
               )}
             </div>
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Reader Applications</h3>
+            <p className="text-xs text-zinc-500">Command used to open each format. Leave blank to use xdg-open.</p>
+            {READER_FORMATS.map(fmt => (
+              <div key={fmt} className="flex items-center gap-3">
+                <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide w-10 text-center ${FORMAT_COLORS[fmt] ?? 'bg-zinc-600'} text-white shrink-0`}>
+                  {fmt}
+                </span>
+                <InputGroup
+                  placeholder="xdg-open (default)"
+                  value={(appPrefs.readerApps ?? {})[fmt] ?? ''}
+                  onChange={e => setReaderApp(fmt, (e.target as HTMLInputElement).value)}
+                  fill
+                />
+              </div>
+            ))}
           </section>
         </div>
 

@@ -70,6 +70,10 @@ export function ListDeviceBooks(arg1) {
   return window['go']['main']['App']['ListDeviceBooks'](arg1);
 }
 
+export function OpenBook(arg1, arg2) {
+  return window['go']['main']['App']['OpenBook'](arg1, arg2);
+}
+
 export function RemoveFromDevice(arg1, arg2) {
   return window['go']['main']['App']['RemoveFromDevice'](arg1, arg2);
 }

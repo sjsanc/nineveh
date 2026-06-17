@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -382,6 +383,29 @@ func deviceSetsEqual(a, b map[string]bool) bool {
 		}
 	}
 	return true
+}
+
+func (a *App) OpenBook(bookID int64, format string) error {
+	book, err := a.library.GetBook(bookID)
+	if err != nil {
+		return fmt.Errorf("get book: %w", err)
+	}
+	var targetPath string
+	for _, f := range book.Formats {
+		if string(f.Format) == format {
+			targetPath = f.Path
+			break
+		}
+	}
+	if targetPath == "" {
+		return fmt.Errorf("format %s not found for book %d", format, bookID)
+	}
+	p := a.prefs.Get()
+	appCmd := p.ReaderApps[format]
+	if appCmd == "" {
+		appCmd = "xdg-open"
+	}
+	return exec.Command(appCmd, targetPath).Start()
 }
 
 func (a *App) SendBook(bookID int64, deviceID string, format metadata.Format) error {

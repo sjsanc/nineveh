@@ -20,11 +20,12 @@ type FetchSourcePrefs struct {
 }
 
 type Preferences struct {
-	LibraryRoot       string          `json:"libraryRoot"`
-	DetailsPaneWidth  int             `json:"detailsPaneWidth"`
-	Columns           ColumnPrefs     `json:"columns"`
-	GoogleBooksAPIKey string          `json:"googleBooksApiKey"`
-	FetchSources      FetchSourcePrefs `json:"fetchSources"`
+	LibraryRoot       string            `json:"libraryRoot"`
+	DetailsPaneWidth  int               `json:"detailsPaneWidth"`
+	Columns           ColumnPrefs       `json:"columns"`
+	GoogleBooksAPIKey string            `json:"googleBooksApiKey"`
+	FetchSources      FetchSourcePrefs  `json:"fetchSources"`
+	ReaderApps        map[string]string `json:"readerApps"`
 }
 
 var defaults = Preferences{
@@ -37,6 +38,7 @@ var defaults = Preferences{
 		OpenLibraryEnabled: true,
 		GoogleBooksEnabled: true,
 	},
+	ReaderApps: map[string]string{},
 }
 
 type Store struct {
@@ -63,6 +65,9 @@ func Open() (*Store, error) {
 			if merged.Columns.Widths == nil {
 				merged.Columns.Widths = map[string]int{}
 			}
+			if merged.ReaderApps == nil {
+				merged.ReaderApps = map[string]string{}
+			}
 			s.data = merged
 		}
 	}
@@ -78,6 +83,9 @@ func (s *Store) Get() Preferences {
 func (s *Store) Save(p Preferences) error {
 	if p.Columns.Widths == nil {
 		p.Columns.Widths = map[string]int{}
+	}
+	if p.ReaderApps == nil {
+		p.ReaderApps = map[string]string{}
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -42,6 +42,7 @@ interface Props {
   onFetchMetadata?: (book: Book) => void
   onToggleRead?: (bookIds: number[], isRead: boolean) => void
   onRemoveBooks?: (ids: number[]) => void
+  onOpenBook?: (bookId: number, format: string) => void
   columnWidths?: Record<string, number>
   onColumnWidthsChange?: (widths: Record<string, number>) => void
 }
@@ -182,6 +183,7 @@ export function BookTable({
   onFetchMetadata,
   onToggleRead,
   onRemoveBooks,
+  onOpenBook,
   columnWidths = {},
   onColumnWidthsChange,
 }: Props) {
@@ -396,6 +398,7 @@ export function BookTable({
           onFetchMetadata={onFetchMetadata}
           onToggleRead={onToggleRead}
           onRemoveBooks={onRemoveBooks}
+          onOpenBook={onOpenBook}
         />
       ) : null}
       <div ref={containerRef} className={`overflow-x-auto overflow-y-auto flex-1 ${viewMode === 'grid' ? 'hidden' : ''}`}>
@@ -462,6 +465,38 @@ export function BookTable({
               disabled
               text={`${selectionCount} book${selectionCount === 1 ? '' : 's'} selected`}
             />
+            <MenuDivider />
+            {selectionCount === 1 && (() => {
+              const book = rows.find(r => selectedBookIds.has(r.original.ID as number))?.original
+              const formats = book?.Formats ?? []
+              if (!formats.length) return null
+              if (formats.length === 1) {
+                return (
+                  <MenuItem
+                    text={`Open (${formats[0].Format.toUpperCase()})`}
+                    icon="document-open"
+                    onClick={() => {
+                      onOpenBook?.(book!.ID as number, formats[0].Format)
+                      setCtxMenu(null)
+                    }}
+                  />
+                )
+              }
+              return (
+                <MenuItem text="Open" icon="document-open">
+                  {formats.map(f => (
+                    <MenuItem
+                      key={f.Format}
+                      text={f.Format.toUpperCase()}
+                      onClick={() => {
+                        onOpenBook?.(book!.ID as number, f.Format)
+                        setCtxMenu(null)
+                      }}
+                    />
+                  ))}
+                </MenuItem>
+              )
+            })()}
             <MenuDivider />
             {selectionCount === 1 && (
               <MenuItem

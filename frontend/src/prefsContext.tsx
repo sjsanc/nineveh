@@ -7,6 +7,7 @@ const defaults: prefs.Preferences = new prefs.Preferences({
   detailsPaneWidth: 288,
   columns: { visible: [], widths: {} },
   fetchSources: { openLibraryEnabled: true, googleBooksEnabled: true },
+  readerApps: {},
 })
 
 interface PrefsContextValue {

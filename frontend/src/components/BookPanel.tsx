@@ -10,9 +10,10 @@ interface Props {
   book: Book
   width: number
   onWidthChange: (w: number) => void
+  onOpenBook?: (bookId: number, format: string) => void
 }
 
-export function BookPanel({ book, width, onWidthChange }: Props) {
+export function BookPanel({ book, width, onWidthChange, onOpenBook }: Props) {
   const handleDragMouseDown = useResizablePanel(width, onWidthChange)
   const coverSrc = useCoverImage(book.CoverPath || undefined, GetCoverData)
 
@@ -110,12 +111,17 @@ export function BookPanel({ book, width, onWidthChange }: Props) {
       {book.Formats?.length > 0 && (
         <div className="flex flex-wrap gap-1.5 px-4 py-3 border-b border-zinc-800 shrink-0">
           {book.Formats.map((f) => (
-            <div key={f.Format} className="flex items-center gap-1">
-              <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide ${FORMAT_COLORS[f.Format] ?? 'bg-zinc-600'} text-white`}>
+            <button
+              key={f.Format}
+              className="flex items-center gap-1 group cursor-pointer"
+              title="Open in reader"
+              onClick={() => onOpenBook?.(book.ID as number, f.Format)}
+            >
+              <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide ${FORMAT_COLORS[f.Format] ?? 'bg-zinc-600'} text-white group-hover:opacity-80 transition-opacity`}>
                 {f.Format}
               </span>
               <span className="text-[10px] text-zinc-500">{formatSize(f.Size)}</span>
-            </div>
+            </button>
           ))}
         </div>
       )}

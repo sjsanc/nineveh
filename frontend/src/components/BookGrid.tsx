@@ -32,6 +32,7 @@ interface Props {
   onFetchMetadata?: (book: Book) => void
   onToggleRead?: (bookIds: number[], isRead: boolean) => void
   onRemoveBooks?: (ids: number[]) => void
+  onOpenBook?: (bookId: number, format: string) => void
 }
 
 interface CardProps {
@@ -111,6 +112,7 @@ export function BookGrid({
   onFetchMetadata,
   onToggleRead,
   onRemoveBooks,
+  onOpenBook,
 }: Props) {
   const { lastClickedIndex, computeNext } = useShiftCtrlSelect()
   const [ctxMenu, setCtxMenu] = useDismissableContextMenu('book-grid-ctx-menu')
@@ -265,6 +267,38 @@ export function BookGrid({
               disabled
               text={`${selectionCount} book${selectionCount === 1 ? '' : 's'} selected`}
             />
+            <MenuDivider />
+            {selectionCount === 1 && (() => {
+              const book = books.find(b => selectedBookIds.has(b.ID as number))
+              const formats = book?.Formats ?? []
+              if (!formats.length) return null
+              if (formats.length === 1) {
+                return (
+                  <MenuItem
+                    text={`Open (${formats[0].Format.toUpperCase()})`}
+                    icon="document-open"
+                    onClick={() => {
+                      onOpenBook?.(book!.ID as number, formats[0].Format)
+                      setCtxMenu(null)
+                    }}
+                  />
+                )
+              }
+              return (
+                <MenuItem text="Open" icon="document-open">
+                  {formats.map(f => (
+                    <MenuItem
+                      key={f.Format}
+                      text={f.Format.toUpperCase()}
+                      onClick={() => {
+                        onOpenBook?.(book!.ID as number, f.Format)
+                        setCtxMenu(null)
+                      }}
+                    />
+                  ))}
+                </MenuItem>
+              )
+            })()}
             <MenuDivider />
             {selectionCount === 1 && (
               <MenuItem
