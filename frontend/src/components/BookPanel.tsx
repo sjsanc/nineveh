@@ -4,6 +4,7 @@ import { Book } from '../types'
 import { FORMAT_COLORS, formatDate, formatDescription, formatSize } from '../utils'
 import { useResizablePanel } from '../lib/useResizablePanel'
 import { useCoverImage } from '../lib/useCoverImage'
+import { Rating } from './Rating'
 
 interface Props {
   book: Book
@@ -55,9 +56,7 @@ export function BookPanel({ book, width, onWidthChange }: Props) {
             {book.SeriesIndex > 0 && <span className="text-zinc-600"> #{book.SeriesIndex}</span>}
           </p>
         )}
-        <span className={`text-xs tracking-tight mt-0.5 ${book.Rating > 0 ? 'text-amber-400' : 'text-zinc-600'}`}>
-          {'★'.repeat(book.Rating)}{'☆'.repeat(5 - book.Rating)}
-        </span>
+        <Rating value={book.Rating} size="sm" className="mt-0.5" />
       </div>
 
       {/* Metadata */}

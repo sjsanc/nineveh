@@ -9,6 +9,7 @@ import { UpdateBook, GetAllAuthors, GetAllTags, GetAllSeries, GetCoverData } fro
 import { filterItem } from '../utils'
 import { useCoverImage } from '../lib/useCoverImage'
 import { EditableMultiSelect } from './EditableMultiSelect'
+import { Rating } from './Rating'
 
 const schema = z.object({
   Title: z.string().min(1, 'Title is required'),
@@ -244,16 +245,11 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
             control={control}
             name="Rating"
             render={({ field }) => (
-              <input
-                {...field}
-                type="number"
-                min="0"
-                max="5"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
+              <div className="flex items-center py-2">
+                <Rating value={field.value} onChange={field.onChange} size="md" />
+              </div>
             )}
           />
-          <p className="text-xs text-zinc-500 mt-1">0-5 stars</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-2">Date Published</label>

@@ -23,6 +23,7 @@ import { makeColWidth, virtualPadding } from '../lib/virtualTable'
 import { VirtualTableHead } from './table/VirtualTableHead'
 import { Dash } from './table/Dash'
 import { SelectionCheckmark } from './table/SelectionCheckmark'
+import { Rating } from './Rating'
 
 interface Props {
   data: Book[]
@@ -135,11 +136,7 @@ const COLUMNS: ColumnDef<Book>[] = [
     minSize: 60,
     cell: ({ getValue }) => {
       const r = getValue<number>()
-      return r > 0 ? (
-        <span className="tracking-tight text-amber-400">{'★'.repeat(r)}</span>
-      ) : (
-        <Dash />
-      )
+      return r > 0 ? <Rating value={r} size="sm" /> : <Dash />
     },
   },
   {

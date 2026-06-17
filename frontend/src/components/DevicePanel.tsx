@@ -6,6 +6,7 @@ import { Icon } from '@blueprintjs/core'
 import { FORMAT_COLORS, formatDate, formatSize, stemOf, buildIndex, matchBook } from '../utils'
 import { useResizablePanel } from '../lib/useResizablePanel'
 import { useCoverImage } from '../lib/useCoverImage'
+import { Rating } from './Rating'
 
 interface Props {
   file: BookFile
@@ -70,9 +71,7 @@ export function DevicePanel({ file, books, width, onWidthChange }: Props) {
           </p>
         )}
         {(book?.Rating ?? 0) > 0 && (
-          <span className="text-xs tracking-tight text-amber-400 mt-0.5">
-            {'★'.repeat(book!.Rating)}{'☆'.repeat(5 - book!.Rating)}
-          </span>
+          <Rating value={book!.Rating} size="sm" className="mt-0.5" />
         )}
       </div>
 
