@@ -36,6 +36,7 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [selectedDeviceFile, setSelectedDeviceFile] = useState<BookFile | null>(null)
   const [isLoadingDeviceBooks, setIsLoadingDeviceBooks] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const toasterRef = useRef<Toaster | null>(null)
   const prevDevicesRef = useRef<DeviceInfo[]>([])
 
@@ -337,6 +338,14 @@ function App() {
   }
 
 
+  function handleAppendFilter(field: string, value: string) {
+    const token = value.includes(' ') ? `${field}:"${value}"` : `${field}:${value}`
+    setSearchQuery(prev => {
+      if (prev.includes(token)) return prev.replace(token, '').replace(/\s+/g, ' ').trim()
+      return prev ? `${prev} ${token}` : token
+    })
+  }
+
   const activeDevice = devices.find(d => d.ID === activeDeviceID) ?? null
 
   return (
@@ -408,6 +417,8 @@ function App() {
                 columnWidths={appPrefs.columns?.widths ?? {}}
                 onColumnWidthsChange={widths => updatePrefs(new prefs.Preferences({ ...appPrefs, columns: { ...appPrefs.columns, widths } }))}
                 visibleColumns={appPrefs.columns?.visible ?? []}
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
               />
               {selectedBook && (
                 <BookPanel
@@ -416,6 +427,7 @@ function App() {
                   width={appPrefs.detailsPaneWidth || 288}
                   onWidthChange={w => updatePrefs(new prefs.Preferences({ ...appPrefs, detailsPaneWidth: w }))}
                   onOpenBook={handleOpenBook}
+                  onAppendFilter={handleAppendFilter}
                 />
               )}
             </div>

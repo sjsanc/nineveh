@@ -47,16 +47,34 @@ interface Props {
   columnWidths?: Record<string, number>
   onColumnWidthsChange?: (widths: Record<string, number>) => void
   visibleColumns?: string[]
+  searchQuery?: string
+  onSearchQueryChange?: (q: string) => void
 }
 
 const bookFilterFn: FilterFn<Book> = (row, _colId, value) => {
-  const q = String(value).toLowerCase()
+  const q = String(value).toLowerCase().trim()
   if (!q) return true
   const b = row.original
+
+  const tokens: { field: string; val: string }[] = []
+  const freeText = q
+    .replace(/(tag|author|series|lang):"([^"]*)"/g, (_, f, v) => { tokens.push({ field: f, val: v.toLowerCase() }); return '' })
+    .replace(/(tag|author|series|lang):(\S+)/g, (_, f, v) => { tokens.push({ field: f, val: v.toLowerCase() }); return '' })
+    .trim()
+
+  for (const { field, val } of tokens) {
+    if (field === 'tag'    && !b.Tags?.some(t => t.toLowerCase().includes(val)))    return false
+    if (field === 'author' && !b.Authors.some(a => a.toLowerCase().includes(val)))  return false
+    if (field === 'series' && !(b.Series?.toLowerCase().includes(val) ?? false))     return false
+    if (field === 'lang'   && !(b.Language?.toLowerCase().includes(val) ?? false))   return false
+  }
+
+  if (!freeText) return true
   return (
-    b.Title.toLowerCase().includes(q) ||
-    b.Authors.some(a => a.toLowerCase().includes(q)) ||
-    (b.Series?.toLowerCase().includes(q) ?? false)
+    b.Title.toLowerCase().includes(freeText) ||
+    b.Authors.some(a => a.toLowerCase().includes(freeText)) ||
+    (b.Series?.toLowerCase().includes(freeText) ?? false) ||
+    (b.Tags?.some(t => t.toLowerCase().includes(freeText)) ?? false)
   )
 }
 
@@ -189,13 +207,15 @@ export function BookTable({
   columnWidths = {},
   onColumnWidthsChange,
   visibleColumns,
+  searchQuery = '',
+  onSearchQueryChange,
 }: Props) {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>(
     () => (localStorage.getItem('viewMode') as 'table' | 'grid') || 'table'
   )
   const [sorting, setSorting] = useState<SortingState>([])
-  const [inputValue, setInputValue] = useState('')
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [inputValue, setInputValue] = useState(searchQuery)
+  const [globalFilter, setGlobalFilter] = useState(searchQuery)
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(columnWidths)
 
   const columnVisibility = useMemo<VisibilityState>(() => {
@@ -218,6 +238,10 @@ export function BookTable({
     saveTimer.current = setTimeout(() => onColumnWidthsChange(columnSizing), 500)
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
   }, [columnSizing])
+
+  useEffect(() => {
+    setInputValue(searchQuery)
+  }, [searchQuery])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -396,21 +420,32 @@ export function BookTable({
         <input
           ref={searchInputRef}
           type="text"
-          placeholder="Search title, author or series…"
+          placeholder="Search title, author, series, tags… or tag:sci-fi author:tolkien"
           value={inputValue}
-          onChange={e => setInputValue(e.target.value)}
+          onChange={e => {
+            const val = e.target.value
+            setInputValue(val)
+            onSearchQueryChange?.(val)
+          }}
           onKeyDown={e => {
             if (e.key === 'Escape') {
               e.preventDefault()
-              if (inputValue) setInputValue('')
-              else e.currentTarget.blur()
+              if (inputValue) {
+                setInputValue('')
+                onSearchQueryChange?.('')
+              } else {
+                e.currentTarget.blur()
+              }
             }
           }}
           className="flex-1 text-[16px] line-height bg-transparent text-zinc-200 placeholder-zinc-500 outline-2 outline-hidden m-1 h-8"
         />
         {inputValue && (
           <button
-            onClick={() => setInputValue('')}
+            onClick={() => {
+              setInputValue('')
+              onSearchQueryChange?.('')
+            }}
             className="flex items-center justify-center w-7 h-7 my-auto mr-1 shrink-0 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
             title="Clear search"
           >

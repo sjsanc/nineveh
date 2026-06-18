@@ -13,9 +13,10 @@ interface Props {
   width: number
   onWidthChange: (w: number) => void
   onOpenBook?: (bookId: number, format: string) => void
+  onAppendFilter?: (field: string, value: string) => void
 }
 
-export function BookPanel({ book, width, onWidthChange, onOpenBook }: Props) {
+export function BookPanel({ book, width, onWidthChange, onOpenBook, onAppendFilter }: Props) {
   const handleDragMouseDown = useResizablePanel(width, onWidthChange)
   const coverSrc = useCoverImage(book.CoverPath || undefined, GetCoverData)
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -53,11 +54,28 @@ export function BookPanel({ book, width, onWidthChange, onOpenBook }: Props) {
       <div className="flex flex-col gap-1 px-4 py-3 border-b border-zinc-800 shrink-0">
         <h2 className="text-sm font-semibold text-zinc-100 leading-snug">{book.Title}</h2>
         {book.Authors?.length > 0 && (
-          <p className="text-xs text-zinc-400">{book.Authors.join(', ')}</p>
+          <p className="text-xs text-zinc-400">
+            {book.Authors.map((a, i) => (
+              <span key={a}>
+                {i > 0 && ', '}
+                <span
+                  className={onAppendFilter ? 'cursor-pointer hover:text-zinc-200 hover:underline' : ''}
+                  onClick={() => onAppendFilter?.('author', a)}
+                >
+                  {a}
+                </span>
+              </span>
+            ))}
+          </p>
         )}
         {book.Series && (
           <p className="text-xs text-zinc-500">
-            {book.Series}
+            <span
+              className={onAppendFilter ? 'cursor-pointer hover:text-zinc-300 hover:underline' : ''}
+              onClick={() => onAppendFilter?.('series', book.Series!)}
+            >
+              {book.Series}
+            </span>
             {book.SeriesIndex > 0 && <span className="text-zinc-600"> #{book.SeriesIndex}</span>}
           </p>
         )}
@@ -76,7 +94,12 @@ export function BookPanel({ book, width, onWidthChange, onOpenBook }: Props) {
           {book.Language && (
             <div className="flex gap-2">
               <dt className="text-zinc-500 w-16 shrink-0">Language</dt>
-              <dd className="text-zinc-300">{book.Language}</dd>
+              <dd
+                className={`text-zinc-300 ${onAppendFilter ? 'cursor-pointer hover:text-zinc-100 hover:underline' : ''}`}
+                onClick={() => onAppendFilter?.('lang', book.Language!)}
+              >
+                {book.Language}
+              </dd>
             </div>
           )}
           {book.DatePublished && (
@@ -104,9 +127,13 @@ export function BookPanel({ book, width, onWidthChange, onOpenBook }: Props) {
       {book.Tags?.length > 0 && (
         <div className="flex flex-wrap gap-1 px-4 py-3 border-b border-zinc-800 shrink-0">
           {book.Tags.map((t) => (
-            <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300">
+            <button
+              key={t}
+              onClick={() => onAppendFilter?.('tag', t)}
+              className={`text-[10px] px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300 ${onAppendFilter ? 'hover:bg-zinc-600 hover:text-zinc-100 cursor-pointer transition-colors' : 'cursor-default'}`}
+            >
               {t}
-            </span>
+            </button>
           ))}
         </div>
       )}
