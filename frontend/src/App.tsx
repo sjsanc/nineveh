@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePrefs } from './prefsContext'
 import { prefs } from '../wailsjs/go/models'
 import { BookTable } from './components/BookTable'
@@ -14,6 +14,7 @@ import { Book, BookFile, DeviceInfo, FetchedMetadata, metadata } from './types'
 import { GetBooks, SelectDirectory, SelectFiles, ImportFile, ImportFromCalibre, ResetLibrary, DetectDevices, ListDeviceBooks, SendBook, UpdateBook, DeleteBook, RemoveFromDevice, FetchBookMetadata, EjectDevice, OpenBook } from '../wailsjs/go/main/App'
 import { EventsOn } from '../wailsjs/runtime/runtime'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { OverlayToaster, Toaster } from '@blueprintjs/core'
 
 const KINDLE_FORMAT_PRIORITY = ['azw3', 'mobi', 'azw', 'epub', 'pdf']
 
@@ -35,6 +36,12 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [selectedDeviceFile, setSelectedDeviceFile] = useState<BookFile | null>(null)
   const [isLoadingDeviceBooks, setIsLoadingDeviceBooks] = useState(false)
+  const toasterRef = useRef<Toaster | null>(null)
+  const prevDevicesRef = useRef<DeviceInfo[]>([])
+
+  useEffect(() => {
+    OverlayToaster.createAsync({ position: 'bottom-right' }).then(t => { toasterRef.current = t })
+  }, [])
 
   function assignLetters(found: DeviceInfo[]) {
     setDeviceLetterMap(prev => {
@@ -62,6 +69,7 @@ function App() {
 
     DetectDevices().then(result => {
       const found = result ?? []
+      prevDevicesRef.current = found
       setDevices(found)
       assignLetters(found)
       if (found.length > 0) {
@@ -75,6 +83,22 @@ function App() {
   useEffect(() => {
     const unsubscribe = EventsOn("devices:changed", (found: DeviceInfo[]) => {
       const list = found ?? []
+      const prev = prevDevicesRef.current
+      const prevIds = new Set(prev.map(d => d.ID))
+      const nextIds = new Set(list.map(d => d.ID))
+
+      for (const d of list) {
+        if (!prevIds.has(d.ID)) {
+          toasterRef.current?.show({ message: `${d.Name} connected`, intent: 'success', timeout: 4000 })
+        }
+      }
+      for (const d of prev) {
+        if (!nextIds.has(d.ID)) {
+          toasterRef.current?.show({ message: `${d.Name} disconnected`, timeout: 4000 })
+        }
+      }
+
+      prevDevicesRef.current = list
       setDevices(list)
       assignLetters(list)
     })
@@ -222,15 +246,16 @@ function App() {
   }
 
   async function handleEjectDevice(deviceID: string) {
+    const deviceName = devices.find(d => d.ID === deviceID)?.Name ?? 'Device'
     try {
       await EjectDevice(deviceID)
       setActiveDeviceID(null)
       setDeviceBooks([])
       setSelectedDeviceFile(null)
       setActiveSection('library')
-      showStatus('Device ejected safely')
+      toasterRef.current?.show({ message: `${deviceName} ejected`, intent: 'success', timeout: 4000 })
     } catch (err) {
-      showStatus(`Eject failed: ${err}`)
+      toasterRef.current?.show({ message: `Eject failed: ${err}`, intent: 'danger', timeout: 4000 })
       console.error(err)
     }
   }
