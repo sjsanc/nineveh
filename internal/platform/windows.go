@@ -9,9 +9,11 @@ import (
 	"nineveh/internal/device"
 )
 
-type stubDetector struct{}
+type windowsDetector struct{}
 
-func (stubDetector) Detect() ([]device.Device, error) { return nil, nil }
+func (windowsDetector) Detect() ([]device.Device, error) {
+	return device.Detect()
+}
 
 type stubWatcher struct{}
 
@@ -25,7 +27,7 @@ func (windowsOpener) Open(path string) error {
 
 func New() Platform {
 	return Platform{
-		Detector: stubDetector{},
+		Detector: windowsDetector{},
 		Watcher:  stubWatcher{},
 		Opener:   windowsOpener{},
 	}
