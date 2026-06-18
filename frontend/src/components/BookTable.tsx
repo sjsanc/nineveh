@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom'
 import {
   ColumnDef,
   ColumnSizingState,
+  VisibilityState,
   FilterFn,
   SortingState,
   flexRender,
@@ -45,6 +46,7 @@ interface Props {
   onOpenBook?: (bookId: number, format: string) => void
   columnWidths?: Record<string, number>
   onColumnWidthsChange?: (widths: Record<string, number>) => void
+  visibleColumns?: string[]
 }
 
 const bookFilterFn: FilterFn<Book> = (row, _colId, value) => {
@@ -186,6 +188,7 @@ export function BookTable({
   onOpenBook,
   columnWidths = {},
   onColumnWidthsChange,
+  visibleColumns,
 }: Props) {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>(
     () => (localStorage.getItem('viewMode') as 'table' | 'grid') || 'table'
@@ -194,6 +197,15 @@ export function BookTable({
   const [inputValue, setInputValue] = useState('')
   const [globalFilter, setGlobalFilter] = useState('')
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(columnWidths)
+
+  const columnVisibility = useMemo<VisibilityState>(() => {
+    if (!visibleColumns?.length) return {}
+    return Object.fromEntries(
+      COLUMNS
+        .filter(col => col.id !== 'index')
+        .map(col => [col.id!, visibleColumns.includes(col.id!)])
+    )
+  }, [visibleColumns])
   const { ref: containerRef, width: containerWidth } = useContainerWidth<HTMLDivElement>()
   const { lastClickedIndex, computeNext } = useShiftCtrlSelect()
   const [ctxMenu, setCtxMenu] = useDismissableContextMenu('book-ctx-menu')
@@ -252,7 +264,7 @@ export function BookTable({
     data,
     columns,
     columnResizeMode: 'onChange',
-    state: { sorting, globalFilter, columnSizing },
+    state: { sorting, globalFilter, columnSizing, columnVisibility },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnSizingChange: setColumnSizing,

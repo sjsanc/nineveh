@@ -7,6 +7,17 @@ import { FORMAT_COLORS } from '../utils'
 
 const READER_FORMATS = ['epub', 'pdf', 'mobi', 'azw', 'azw3'] as const
 
+const CONFIGURABLE_COLUMNS = [
+  { id: 'isRead',        label: 'Read' },
+  { id: 'title',         label: 'Title' },
+  { id: 'authors',       label: 'Author(s)' },
+  { id: 'series',        label: 'Series' },
+  { id: 'tags',          label: 'Tags' },
+  { id: 'rating',        label: 'Rating' },
+  { id: 'datePublished', label: 'Published' },
+  { id: 'dateAdded',     label: 'Added' },
+] as const
+
 interface Props {
   onClose: () => void
 }
@@ -41,6 +52,24 @@ export function SettingsDialog({ onClose }: Props) {
     }))
   }
 
+  function setColumnVisible(colId: string, isVisible: boolean) {
+    const currentVisible = appPrefs.columns?.visible ?? []
+    const allIds = CONFIGURABLE_COLUMNS.map(c => c.id)
+    const base = currentVisible.length === 0 ? [...allIds] : [...currentVisible]
+    const next = isVisible
+      ? [...new Set([...base, colId])]
+      : base.filter(id => id !== colId)
+    updatePrefs(new prefs.Preferences({
+      ...appPrefs,
+      columns: new prefs.ColumnPrefs({ ...appPrefs.columns, visible: next }),
+    }))
+  }
+
+  function isColumnVisible(colId: string): boolean {
+    const visible = appPrefs.columns?.visible ?? []
+    return visible.length === 0 || visible.includes(colId)
+  }
+
   const { openLibraryEnabled, googleBooksEnabled } = appPrefs.fetchSources ?? { openLibraryEnabled: true, googleBooksEnabled: true }
   const apiKey = appPrefs.googleBooksApiKey ?? ''
   const googleBooksActive = googleBooksEnabled && apiKey !== ''
@@ -67,6 +96,23 @@ export function SettingsDialog({ onClose }: Props) {
 
         {/* Body */}
         <div className="p-6 space-y-6">
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Columns</h3>
+            <p className="text-xs text-zinc-500">Choose which columns are visible in the library table.</p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              {CONFIGURABLE_COLUMNS.map(col => (
+                <div key={col.id} className="flex items-center justify-between">
+                  <span className="text-sm text-zinc-200">{col.label}</span>
+                  <Switch
+                    checked={isColumnVisible(col.id)}
+                    onChange={e => setColumnVisible(col.id, (e.target as HTMLInputElement).checked)}
+                    className="mb-0"
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section className="space-y-4">
             <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Metadata Sources</h3>
 

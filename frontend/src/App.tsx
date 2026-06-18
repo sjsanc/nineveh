@@ -382,6 +382,7 @@ function App() {
                 onOpenBook={handleOpenBook}
                 columnWidths={appPrefs.columns?.widths ?? {}}
                 onColumnWidthsChange={widths => updatePrefs(new prefs.Preferences({ ...appPrefs, columns: { ...appPrefs.columns, widths } }))}
+                visibleColumns={appPrefs.columns?.visible ?? []}
               />
               {selectedBook && (
                 <BookPanel
