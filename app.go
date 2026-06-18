@@ -20,6 +20,7 @@ import (
 	"nineveh/internal/fetcher"
 	"nineveh/internal/library"
 	"nineveh/internal/metadata"
+	"nineveh/internal/platform"
 	"nineveh/internal/prefs"
 
 	"github.com/adrg/xdg"
@@ -33,10 +34,11 @@ type App struct {
 	prefs     *prefs.Store
 	devicesMu sync.RWMutex
 	devices   []device.Device
+	platform  platform.Platform
 }
 
 func NewApp() *App {
-	return &App{}
+	return &App{platform: platform.New()}
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -58,7 +60,7 @@ func (a *App) startup(ctx context.Context) {
 	} else {
 		a.prefs = prefs.Default()
 	}
-	if initial, err := device.Detect(); err == nil {
+	if initial, err := a.platform.Detector.Detect(); err == nil {
 		a.devices = initial
 	}
 	go a.watchDevices()
@@ -230,7 +232,7 @@ func (a *App) ResetLibrary() error {
 // --- Devices ---
 
 func (a *App) DetectDevices() ([]device.DeviceInfo, error) {
-	detected, err := device.Detect()
+	detected, err := a.platform.Detector.Detect()
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +282,7 @@ func (a *App) cachedDevices() []device.Device {
 }
 
 func (a *App) refreshDevices() {
-	detected, err := device.Detect()
+	detected, err := a.platform.Detector.Detect()
 	if err != nil {
 		return
 	}
@@ -299,11 +301,11 @@ func (a *App) watchDevices() {
 	// the block device is fully ready to mount (e.g. immediately after reconnect).
 	go a.watchDevicesPoll()
 
-	// Uevent listener gives fast response on connect/disconnect.
-	if err := device.ListenUevents(a.ctx, func(_ string) {
+	// Watcher gives fast response on connect/disconnect.
+	if err := a.platform.Watcher.Watch(a.ctx, func(_ string) {
 		a.refreshDevices()
 	}); err != nil {
-		slog.Warn("uevent listener unavailable", "err", err)
+		slog.Warn("device watcher unavailable", "err", err)
 	}
 }
 
@@ -403,7 +405,7 @@ func (a *App) OpenBook(bookID int64, format string) error {
 	p := a.prefs.Get()
 	appCmd := p.ReaderApps[format]
 	if appCmd == "" {
-		appCmd = "xdg-open"
+		return a.platform.Opener.Open(targetPath)
 	}
 	return exec.Command(appCmd, targetPath).Start()
 }
