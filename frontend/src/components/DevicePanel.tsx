@@ -100,8 +100,8 @@ export function DevicePanel({ file, books, width, onWidthChange }: Props) {
             </dd>
           </div>
           <div className="flex gap-2">
-            <dt className="text-zinc-500 w-16 shrink-0">File</dt>
-            <dd className="text-zinc-400 min-w-0 break-all">{filename}</dd>
+            <dt className="text-zinc-500 w-16 shrink-0">Path</dt>
+            <dd className="text-zinc-400 min-w-0 break-all">{file.Path}</dd>
           </div>
         </dl>
       </div>
