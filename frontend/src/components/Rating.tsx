@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-interface RatingProps {
+interface Props {
   value: number
   onChange?: (value: number) => void
   max?: number
@@ -14,7 +14,7 @@ const SIZE_CLASSES: Record<'sm' | 'md', string> = {
   md: 'text-xl',
 }
 
-export function Rating({ value, onChange, max = 5, size = 'md', className = '', 'aria-label': ariaLabel }: RatingProps) {
+export function Rating({ value, onChange, max = 5, size = 'md', className = '', 'aria-label': ariaLabel }: Props) {
   const [hoverValue, setHoverValue] = useState<number | null>(null)
   const readOnly = !onChange
   const displayValue = hoverValue ?? value

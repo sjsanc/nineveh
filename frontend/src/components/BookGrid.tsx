@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
-import ReactDOM from 'react-dom'
-import { Icon, Menu, MenuItem, MenuDivider } from '@blueprintjs/core'
+import { Icon } from '@blueprintjs/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { Book, BookFile, DeviceInfo } from '../types'
+import { Book } from '../types'
 import { deviceColor, buildIndex, matchBook } from '../utils'
 import { useShiftCtrlSelect } from '../lib/useShiftCtrlSelect'
 import { useDismissableContextMenu } from '../lib/useDismissableContextMenu'
 import { useCoverImage } from '../lib/useCoverImage'
 import { useContainerWidth } from '../lib/useContainerWidth'
+import { useDevice } from '../deviceContext'
+import { BookContextMenu } from './BookContextMenu'
 import { GetCoverData } from '../../wailsjs/go/main/App'
 
 const CARD_MIN_WIDTH = 220
@@ -24,10 +25,6 @@ interface Props {
   onSelectBook?: (book: Book) => void
   onSelectionChange?: (ids: Set<number>, focused: Book | null) => void
   onDoubleClickBook?: (book: Book) => void
-  devices?: DeviceInfo[]
-  activeDeviceID?: string | null
-  deviceLetterMap?: Map<string, string>
-  deviceBooks?: BookFile[]
   onSendToDevice?: (bookIds: number[], deviceId: string) => void
   onEditBook?: (book: Book) => void
   onFetchMetadata?: (book: Book) => void
@@ -104,10 +101,6 @@ export function BookGrid({
   onSelectBook,
   onSelectionChange,
   onDoubleClickBook,
-  devices = [],
-  activeDeviceID,
-  deviceLetterMap,
-  deviceBooks = [],
   onSendToDevice,
   onEditBook,
   onFetchMetadata,
@@ -115,6 +108,7 @@ export function BookGrid({
   onRemoveBooks,
   onOpenBook,
 }: Props) {
+  const { devices, activeDeviceID, deviceLetterMap, deviceBooks } = useDevice()
   const { lastClickedIndex, computeNext } = useShiftCtrlSelect()
   const [ctxMenu, setCtxMenu] = useDismissableContextMenu('book-grid-ctx-menu')
   const { ref: containerRef, width: containerWidth } = useContainerWidth<HTMLDivElement>()
@@ -185,40 +179,8 @@ export function BookGrid({
     setCtxMenu({ x: e.clientX, y: e.clientY })
   }
 
-  function buildDeviceMenu() {
-    if (devices.length === 0) {
-      return <MenuItem text="Send to Device" icon="upload" disabled />
-    }
-    if (devices.length === 1) {
-      return (
-        <MenuItem
-          text={`Send to "${devices[0].Name}"`}
-          icon="upload"
-          onClick={() => {
-            onSendToDevice?.([...selectedBookIds] as number[], devices[0].ID)
-            setCtxMenu(null)
-          }}
-        />
-      )
-    }
-    return (
-      <MenuItem text="Send to Device" icon="upload">
-        {devices.map(d => (
-          <MenuItem
-            key={d.ID}
-            text={d.Name}
-            icon="desktop"
-            onClick={() => {
-              onSendToDevice?.([...selectedBookIds] as number[], d.ID)
-              setCtxMenu(null)
-            }}
-          />
-        ))}
-      </MenuItem>
-    )
-  }
-
   const selectionCount = selectedBookIds.size
+  const focusedBook = books.find(b => selectedBookIds.has(b.ID as number)) ?? null
 
   return (
     <div ref={containerRef} className="overflow-x-auto overflow-y-auto flex-1">
@@ -257,104 +219,21 @@ export function BookGrid({
         ))}
       </div>
 
-      {ctxMenu && ReactDOM.createPortal(
-        <div
-          id="book-grid-ctx-menu"
-          className="bp6-dark"
-          style={{ position: 'fixed', left: ctxMenu.x, top: ctxMenu.y, zIndex: 1000 }}
-        >
-          <Menu>
-            <MenuItem
-              disabled
-              text={`${selectionCount} book${selectionCount === 1 ? '' : 's'} selected`}
-            />
-            <MenuDivider />
-            {selectionCount === 1 && (() => {
-              const book = books.find(b => selectedBookIds.has(b.ID as number))
-              const formats = book?.Formats ?? []
-              if (!formats.length) return null
-              if (formats.length === 1) {
-                return (
-                  <MenuItem
-                    text={`Open (${formats[0].Format.toUpperCase()})`}
-                    icon="document-open"
-                    onClick={() => {
-                      onOpenBook?.(book!.ID as number, formats[0].Format)
-                      setCtxMenu(null)
-                    }}
-                  />
-                )
-              }
-              return (
-                <MenuItem text="Open" icon="document-open">
-                  {formats.map(f => (
-                    <MenuItem
-                      key={f.Format}
-                      text={f.Format.toUpperCase()}
-                      onClick={() => {
-                        onOpenBook?.(book!.ID as number, f.Format)
-                        setCtxMenu(null)
-                      }}
-                    />
-                  ))}
-                </MenuItem>
-              )
-            })()}
-            <MenuDivider />
-            {selectionCount === 1 && (
-              <MenuItem
-                text="Edit Metadata"
-                icon="edit"
-                onClick={() => {
-                  const book = books.find(b => selectedBookIds.has(b.ID as number)) ?? null
-                  if (book) onEditBook?.(book)
-                  setCtxMenu(null)
-                }}
-              />
-            )}
-            {selectionCount === 1 && (
-              <MenuItem
-                text="Fetch Metadata"
-                icon="cloud-download"
-                onClick={() => {
-                  const book = books.find(b => selectedBookIds.has(b.ID as number)) ?? null
-                  if (book) onFetchMetadata?.(book)
-                  setCtxMenu(null)
-                }}
-              />
-            )}
-            {(() => {
-              const selectedBooks = books.filter(b => selectedBookIds.has(b.ID as number))
-              const allRead = selectedBooks.length > 0 && selectedBooks.every(b => b.IsRead)
-              const label = allRead
-                ? (selectionCount > 1 ? 'Mark All as Unread' : 'Mark as Unread')
-                : (selectionCount > 1 ? 'Mark All as Read' : 'Mark as Read')
-              return (
-                <MenuItem
-                  text={label}
-                  icon={allRead ? 'cross' : 'tick'}
-                  onClick={() => {
-                    onToggleRead?.([...selectedBookIds] as number[], !allRead)
-                    setCtxMenu(null)
-                  }}
-                />
-              )
-            })()}
-            {buildDeviceMenu()}
-            <MenuDivider />
-            <MenuItem
-              text={`Remove ${selectionCount} book${selectionCount === 1 ? '' : 's'} from library`}
-              icon="trash"
-              intent="danger"
-              onClick={() => {
-                onRemoveBooks?.([...selectedBookIds] as number[])
-                setCtxMenu(null)
-              }}
-            />
-          </Menu>
-        </div>,
-        document.body
-      )}
+      <BookContextMenu
+        menuId="book-grid-ctx-menu"
+        pos={ctxMenu}
+        selectedBookIds={selectedBookIds}
+        focusedBook={focusedBook}
+        visibleBooks={books}
+        devices={devices}
+        onClose={() => setCtxMenu(null)}
+        onOpenBook={onOpenBook}
+        onEditBook={onEditBook}
+        onFetchMetadata={onFetchMetadata}
+        onToggleRead={onToggleRead}
+        onSendToDevice={onSendToDevice}
+        onRemoveBooks={onRemoveBooks}
+      />
     </div>
   )
 }

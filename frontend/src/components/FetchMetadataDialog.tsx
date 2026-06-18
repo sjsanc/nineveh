@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Spinner, NonIdealState, Callout, HTMLSelect } from '@blueprintjs/core'
 import { Book, FetchedMetadata, metadata } from '../types'
@@ -67,6 +67,12 @@ function initialAcceptedFields(book: Book, candidate: FetchedMetadata): Set<Fiel
 
 export function FetchMetadataDialog({ book, candidates, error, onClose, onSave }: Props) {
   const [selectedIdx, setSelectedIdx] = useState(0)
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
   const [acceptedFields, setAcceptedFields] = useState<Set<FieldKey>>(() => {
     if (candidates && candidates.length > 0) {
       return initialAcceptedFields(book, candidates[0])

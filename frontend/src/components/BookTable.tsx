@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BookGrid } from './BookGrid'
-import ReactDOM from 'react-dom'
+import { BookContextMenu } from './BookContextMenu'
 import {
   ColumnDef,
   ColumnSizingState,
@@ -14,14 +14,15 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { Icon, Menu, MenuItem, MenuDivider } from '@blueprintjs/core'
-import { Book, BookFile } from '../types'
-import { DeviceInfo } from '../types'
+import { Icon } from '@blueprintjs/core'
+import { Book } from '../types'
 import { formatDate, deviceColor, buildIndex, matchBook } from '../utils'
 import { useContainerWidth } from '../lib/useContainerWidth'
 import { useShiftCtrlSelect } from '../lib/useShiftCtrlSelect'
 import { useDismissableContextMenu } from '../lib/useDismissableContextMenu'
 import { makeColWidth, virtualPadding } from '../lib/virtualTable'
+import { makeTableKeyDown } from '../lib/tableKeyboard'
+import { useDevice } from '../deviceContext'
 import { VirtualTableHead } from './table/VirtualTableHead'
 import { Dash } from './table/Dash'
 import { SelectionCheckmark } from './table/SelectionCheckmark'
@@ -34,10 +35,6 @@ interface Props {
   onSelectBook?: (book: Book) => void
   onSelectionChange?: (ids: Set<number>, focused: Book | null) => void
   onDoubleClickBook?: (book: Book) => void
-  devices?: DeviceInfo[]
-  activeDeviceID?: string | null
-  deviceLetterMap?: Map<string, string>
-  deviceBooks?: BookFile[]
   onSendToDevice?: (bookIds: number[], deviceId: string) => void
   onEditBook?: (book: Book) => void
   onFetchMetadata?: (book: Book) => void
@@ -194,10 +191,6 @@ export function BookTable({
   onSelectBook,
   onSelectionChange,
   onDoubleClickBook,
-  devices = [],
-  activeDeviceID,
-  deviceLetterMap,
-  deviceBooks = [],
   onSendToDevice,
   onEditBook,
   onFetchMetadata,
@@ -210,6 +203,7 @@ export function BookTable({
   searchQuery = '',
   onSearchQueryChange,
 }: Props) {
+  const { devices, activeDeviceID, deviceLetterMap, deviceBooks } = useDevice()
   const [viewMode, setViewMode] = useState<'table' | 'grid'>(
     () => (localStorage.getItem('viewMode') as 'table' | 'grid') || 'table'
   )
@@ -328,25 +322,16 @@ export function BookTable({
     return rows.findIndex(r => r.original.ID === selectedBookId)
   }
 
-  function handleTableKeyDown(e: React.KeyboardEvent) {
-    if (!rows.length) return
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault()
-      const current = getCursorIndex()
-      const newIdx = current === -1 ? 0 : e.key === 'ArrowDown'
-        ? Math.min(current + 1, rows.length - 1)
-        : Math.max(current - 1, 0)
-      const book = rows[newIdx].original
+  const handleTableKeyDown = makeTableKeyDown(
+    rows,
+    getCursorIndex,
+    (book, _idx) => {
       onSelectBook?.(book)
       onSelectionChange?.(new Set([book.ID as number]), book)
-      rowVirtualizer.scrollToIndex(newIdx, { align: 'auto' })
-    } else if (e.key === 'Enter') {
-      const current = getCursorIndex()
-      if (current >= 0) onDoubleClickBook?.(rows[current].original)
-    } else if (e.key === 'Escape') {
-      ;(e.currentTarget as HTMLElement).blur()
-    }
-  }
+    },
+    (idx, opts) => rowVirtualizer.scrollToIndex(idx, opts),
+    (book) => onDoubleClickBook?.(book),
+  )
 
   function handleRowClick(e: React.MouseEvent, book: Book, rowIndex: number) {
     if (!onSelectionChange) {
@@ -376,40 +361,8 @@ export function BookTable({
     setCtxMenu({ x: e.clientX, y: e.clientY })
   }
 
-  function buildDeviceMenu() {
-    if (devices.length === 0) {
-      return <MenuItem text="Send to Device" icon="upload" disabled />
-    }
-    if (devices.length === 1) {
-      return (
-        <MenuItem
-          text={`Send to "${devices[0].Name}"`}
-          icon="upload"
-          onClick={() => {
-            onSendToDevice?.([...selectedBookIds] as number[], devices[0].ID)
-            setCtxMenu(null)
-          }}
-        />
-      )
-    }
-    return (
-      <MenuItem text="Send to Device" icon="upload">
-        {devices.map(d => (
-          <MenuItem
-            key={d.ID}
-            text={d.Name}
-            icon="desktop"
-            onClick={() => {
-              onSendToDevice?.([...selectedBookIds] as number[], d.ID)
-              setCtxMenu(null)
-            }}
-          />
-        ))}
-      </MenuItem>
-    )
-  }
-
   const selectionCount = selectedBookIds.size
+  const focusedBook = rows.find(r => selectedBookIds.has(r.original.ID as number))?.original ?? null
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
@@ -484,10 +437,6 @@ export function BookTable({
           onSelectBook={onSelectBook}
           onSelectionChange={onSelectionChange}
           onDoubleClickBook={onDoubleClickBook}
-          devices={devices}
-          activeDeviceID={activeDeviceID}
-          deviceLetterMap={deviceLetterMap}
-          deviceBooks={deviceBooks}
           onSendToDevice={onSendToDevice}
           onEditBook={onEditBook}
           onFetchMetadata={onFetchMetadata}
@@ -549,104 +498,21 @@ export function BookTable({
         </table>
       </div>
 
-      {ctxMenu && ReactDOM.createPortal(
-        <div
-          id="book-ctx-menu"
-          className="bp6-dark"
-          style={{ position: 'fixed', left: ctxMenu.x, top: ctxMenu.y, zIndex: 1000 }}
-        >
-          <Menu>
-            <MenuItem
-              disabled
-              text={`${selectionCount} book${selectionCount === 1 ? '' : 's'} selected`}
-            />
-            <MenuDivider />
-            {selectionCount === 1 && (() => {
-              const book = rows.find(r => selectedBookIds.has(r.original.ID as number))?.original
-              const formats = book?.Formats ?? []
-              if (!formats.length) return null
-              if (formats.length === 1) {
-                return (
-                  <MenuItem
-                    text={`Open (${formats[0].Format.toUpperCase()})`}
-                    icon="document-open"
-                    onClick={() => {
-                      onOpenBook?.(book!.ID as number, formats[0].Format)
-                      setCtxMenu(null)
-                    }}
-                  />
-                )
-              }
-              return (
-                <MenuItem text="Open" icon="document-open">
-                  {formats.map(f => (
-                    <MenuItem
-                      key={f.Format}
-                      text={f.Format.toUpperCase()}
-                      onClick={() => {
-                        onOpenBook?.(book!.ID as number, f.Format)
-                        setCtxMenu(null)
-                      }}
-                    />
-                  ))}
-                </MenuItem>
-              )
-            })()}
-            <MenuDivider />
-            {selectionCount === 1 && (
-              <MenuItem
-                text="Edit Metadata"
-                icon="edit"
-                onClick={() => {
-                  const book = rows.find(r => selectedBookIds.has(r.original.ID as number))?.original ?? null
-                  if (book) onEditBook?.(book)
-                  setCtxMenu(null)
-                }}
-              />
-            )}
-            {selectionCount === 1 && (
-              <MenuItem
-                text="Fetch Metadata"
-                icon="cloud-download"
-                onClick={() => {
-                  const book = rows.find(r => selectedBookIds.has(r.original.ID as number))?.original ?? null
-                  if (book) onFetchMetadata?.(book)
-                  setCtxMenu(null)
-                }}
-              />
-            )}
-            {(() => {
-              const selectedBooks = rows.filter(r => selectedBookIds.has(r.original.ID as number)).map(r => r.original)
-              const allRead = selectedBooks.length > 0 && selectedBooks.every(b => b.IsRead)
-              const label = allRead
-                ? (selectionCount > 1 ? 'Mark All as Unread' : 'Mark as Unread')
-                : (selectionCount > 1 ? 'Mark All as Read' : 'Mark as Read')
-              return (
-                <MenuItem
-                  text={label}
-                  icon={allRead ? 'cross' : 'tick'}
-                  onClick={() => {
-                    onToggleRead?.([...selectedBookIds] as number[], !allRead)
-                    setCtxMenu(null)
-                  }}
-                />
-              )
-            })()}
-            {buildDeviceMenu()}
-            <MenuDivider />
-            <MenuItem
-              text={`Remove ${selectionCount} book${selectionCount === 1 ? '' : 's'} from library`}
-              icon="trash"
-              intent="danger"
-              onClick={() => {
-                onRemoveBooks?.([...selectedBookIds] as number[])
-                setCtxMenu(null)
-              }}
-            />
-          </Menu>
-        </div>,
-        document.body
-      )}
+      <BookContextMenu
+        menuId="book-ctx-menu"
+        pos={ctxMenu}
+        selectedBookIds={selectedBookIds}
+        focusedBook={focusedBook}
+        visibleBooks={rows.map(r => r.original)}
+        devices={devices}
+        onClose={() => setCtxMenu(null)}
+        onOpenBook={onOpenBook}
+        onEditBook={onEditBook}
+        onFetchMetadata={onFetchMetadata}
+        onToggleRead={onToggleRead}
+        onSendToDevice={onSendToDevice}
+        onRemoveBooks={onRemoveBooks}
+      />
     </div>
   )
 }

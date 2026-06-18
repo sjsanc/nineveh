@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePrefs } from './prefsContext'
+import { DeviceProvider } from './deviceContext'
 import { prefs } from '../wailsjs/go/models'
 import { BookTable } from './components/BookTable'
 import { BookPanel } from './components/BookPanel'
@@ -61,6 +62,19 @@ function App() {
     setTimeout(() => setImportStatus(''), ms)
   }
 
+  async function loadDevices(): Promise<DeviceInfo[]> {
+    const result = await DetectDevices()
+    const found = result ?? []
+    setDevices(found)
+    assignLetters(found)
+    if (found.length > 0) {
+      setActiveDeviceID(found[0].ID)
+      setIsLoadingDeviceBooks(true)
+      ListDeviceBooks(found[0].ID).then(files => setDeviceBooks(files ?? [])).catch(console.error).finally(() => setIsLoadingDeviceBooks(false))
+    }
+    return found
+  }
+
   useEffect(() => {
     GetBooks().then(result => {
       const loaded = result ?? []
@@ -68,16 +82,8 @@ function App() {
       if (loaded.length > 0) setSelectedBook(loaded[0])
     }).catch(console.error)
 
-    DetectDevices().then(result => {
-      const found = result ?? []
+    loadDevices().then(found => {
       prevDevicesRef.current = found
-      setDevices(found)
-      assignLetters(found)
-      if (found.length > 0) {
-        setActiveDeviceID(found[0].ID)
-        setIsLoadingDeviceBooks(true)
-        ListDeviceBooks(found[0].ID).then(files => setDeviceBooks(files ?? [])).catch(console.error).finally(() => setIsLoadingDeviceBooks(false))
-      }
     }).catch(console.error)
   }, [])
 
@@ -150,20 +156,9 @@ function App() {
 
   async function handleRescanDevices() {
     try {
-      const result = await DetectDevices()
-      const found = result ?? []
-      setDevices(found)
-      assignLetters(found)
-      if (found.length > 0) {
-        setActiveDeviceID(found[0].ID)
-        setIsLoadingDeviceBooks(true)
-        ListDeviceBooks(found[0].ID).then(files => setDeviceBooks(files ?? [])).catch(console.error).finally(() => setIsLoadingDeviceBooks(false))
-      } else {
-        setDeviceBooks([])
-      }
-      if (activeDeviceID && !found.some(d => d.ID === activeDeviceID)) {
-        setActiveDeviceID(null)
-      }
+      const found = await loadDevices()
+      if (found.length === 0) setDeviceBooks([])
+      if (activeDeviceID && !found.some(d => d.ID === activeDeviceID)) setActiveDeviceID(null)
     } catch (err) {
       console.error(err)
     }
@@ -349,6 +344,7 @@ function App() {
   const activeDevice = devices.find(d => d.ID === activeDeviceID) ?? null
 
   return (
+    <DeviceProvider value={{ devices, activeDeviceID, deviceLetterMap, deviceBooks }}>
     <div className="bp6-dark h-screen w-screen flex bg-zinc-950 text-zinc-100 overflow-hidden">
       <Sidebar
         isLibraryActive={activeSection === 'library'}
@@ -365,9 +361,6 @@ function App() {
         onAdd={handleAddBooks}
         onReset={handleResetLibrary}
         importStatus={importStatus}
-        devices={devices}
-        activeDeviceID={activeDeviceID}
-        deviceLetterMap={deviceLetterMap}
         onSelectDevice={handleSelectDevice}
         isLoadingDeviceBooks={isLoadingDeviceBooks}
       />
@@ -404,10 +397,6 @@ function App() {
                 onSelectBook={setSelectedBook}
                 onSelectionChange={handleSelectionChange}
                 onDoubleClickBook={book => book.Formats?.length && handleOpenBook(book.ID as number, book.Formats[0].Format)}
-                devices={devices}
-                activeDeviceID={activeDeviceID}
-                deviceLetterMap={deviceLetterMap}
-                deviceBooks={deviceBooks}
                 onSendToDevice={handleSendToDevice}
                 onEditBook={setEditingBook}
                 onFetchMetadata={handleFetchMetadata}
@@ -457,6 +446,7 @@ function App() {
       )}
       {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
     </div>
+    </DeviceProvider>
   )
 }
 

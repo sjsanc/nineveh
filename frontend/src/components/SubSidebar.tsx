@@ -1,6 +1,6 @@
 import { Icon } from '@blueprintjs/core'
-import { DeviceInfo } from '../types'
 import { deviceColor } from '../utils'
+import { useDevice } from '../deviceContext'
 
 interface Props {
   activeSection: 'library' | 'devices'
@@ -8,14 +8,12 @@ interface Props {
   onAdd: () => void
   onReset: () => void
   importStatus: string
-  devices: DeviceInfo[]
-  activeDeviceID: string | null
-  deviceLetterMap: Map<string, string>
   onSelectDevice: (id: string) => void
   isLoadingDeviceBooks: boolean
 }
 
-export function SubSidebar({ activeSection, onImport, onAdd, onReset, importStatus, devices, activeDeviceID, deviceLetterMap, onSelectDevice, isLoadingDeviceBooks }: Props) {
+export function SubSidebar({ activeSection, onImport, onAdd, onReset, importStatus, onSelectDevice, isLoadingDeviceBooks }: Props) {
+  const { devices, activeDeviceID, deviceLetterMap } = useDevice()
   return (
     <div className="w-12 shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col items-center py-2 gap-2">
       {activeSection === 'library' && (
