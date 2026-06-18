@@ -42,3 +42,31 @@ Key patterns:
 - Cover images are served by a custom `http.Handler` in `main.go` at `/covers/<hash>.jpg`. The frontend requests them via `GetCoverData` (returns base64 data URL) rather than direct `<img src>` to work inside Wails' asset server.
 - UI uses Blueprint v6 + Tailwind v4. Blueprint classes require the `bp6-dark` class on the root element for dark theme.
 - `@tanstack/react-table` + `@tanstack/react-virtual` for the book/device tables with virtualized rows.
+
+## Releases & Deployment
+
+### Cutting a release
+
+```bash
+git tag v1.2.3 -m "v1.2.3"
+git push origin v1.2.3
+```
+
+That tag push is the sole trigger for the release pipeline. No other action required.
+
+### CI pipeline (`.github/workflows/ci-release.yml`)
+
+- **Every push/PR to master** → `test` job runs `go test ./internal/...`
+- **Tag push `v*`** → `test` then `release`: builds the binary on `ubuntu-24.04` (has `libwebkit2gtk-4.1-dev` in apt), creates a GitHub release with a Linux amd64 tarball, then updates the AUR package
+
+The build command in CI is `wails build -tags webkit2_41 -ldflags "-s -w"`. The `-ldflags` strips symbols; the binary is ~18 MB.
+
+Frontend tests slot into the `test` job when added — see the commented stubs in the workflow file.
+
+### AUR package (`nineveh-bin`)
+
+Lives at `aur/PKGBUILD` in this repo. It's a **binary package** — no compilation on the user's machine. The CI workflow:
+1. Builds the binary and uploads it to the GitHub release as `nineveh-{ver}-linux-amd64.tar.gz`
+2. Clones `aur@aur.archlinux.org:nineveh-bin.git`, patches `pkgver` and `sha256sums`, regenerates `.SRCINFO` via `archlinux:base` Docker, and pushes
+
+The AUR push requires the `AUR_SSH_KEY` GitHub Actions secret — an ed25519 private key whose public half is registered on the AUR account. This secret is already configured.

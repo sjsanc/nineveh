@@ -30,6 +30,7 @@ sed -i "s|sha256sums=('PLACEHOLDER')|sha256sums=('${SHA256}')|" PKGBUILD
 docker run --rm \
   -v "$(pwd)":/pkg \
   -w /pkg \
+  -e HOME=/tmp \
   --user "$(id -u):$(id -g)" \
   archlinux:base \
   bash -c "makepkg --printsrcinfo > .SRCINFO"
