@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Icon } from '@blueprintjs/core'
 import { Menu, MenuItem, MenuDivider } from '@blueprintjs/core'
@@ -130,10 +130,34 @@ export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice
   const { items: virtualItems, paddingTop, paddingBottom } = virtualPadding(rowVirtualizer)
   const colWidth = makeColWidth(table, containerWidth)
 
+  function getCursorIndex(): number {
+    if (selectedPaths.size !== 1) return -1
+    const path = [...selectedPaths][0]
+    return rows.findIndex(r => r.original.Path === path)
+  }
+
+  function handleTableKeyDown(e: React.KeyboardEvent) {
+    if (!rows.length) return
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const current = getCursorIndex()
+      const newIdx = current === -1 ? 0 : e.key === 'ArrowDown'
+        ? Math.min(current + 1, rows.length - 1)
+        : Math.max(current - 1, 0)
+      const file = rows[newIdx].original
+      setSelectedPaths(new Set([file.Path]))
+      onSelectFile?.(file)
+      rowVirtualizer.scrollToIndex(newIdx, { align: 'auto' })
+    } else if (e.key === 'Escape') {
+      ;(e.currentTarget as HTMLElement).blur()
+    }
+  }
+
   function handleRowClick(e: React.MouseEvent, path: string, rowIndex: number) {
     const next = computeNext(e, path, rowIndex, selectedPaths, (lo, hi) => rows.slice(lo, hi + 1).map(r => r.original.Path))
     setSelectedPaths(next)
     onSelectFile?.(next.size === 1 ? data.find(f => f.Path === [...next][0]) ?? null : null)
+    containerRef.current?.focus({ preventScroll: true })
   }
 
   function handleContextMenu(e: React.MouseEvent, path: string, rowIndex: number) {
@@ -177,7 +201,7 @@ export function DeviceTable({ data, books, device, isLoading, onRemoveFromDevice
           )}
         </div>
       )}
-    <div ref={containerRef} className="overflow-x-hidden overflow-y-auto flex-1 w-full">
+    <div ref={containerRef} tabIndex={0} onKeyDown={handleTableKeyDown} className="overflow-x-hidden overflow-y-auto flex-1 w-full outline-none">
       {isLoading ? (
         <div className="flex items-center justify-center h-full text-zinc-600 text-sm">
           Loading books…

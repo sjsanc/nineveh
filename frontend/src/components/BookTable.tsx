@@ -210,6 +210,7 @@ export function BookTable({
   const { lastClickedIndex, computeNext } = useShiftCtrlSelect()
   const [ctxMenu, setCtxMenu] = useDismissableContextMenu('book-ctx-menu')
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!onColumnWidthsChange) return
@@ -217,6 +218,18 @@ export function BookTable({
     saveTimer.current = setTimeout(() => onColumnWidthsChange(columnSizing), 500)
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
   }, [columnSizing])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+        searchInputRef.current?.select()
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   const onDeviceIds = useMemo<Set<number>>(() => {
     if (!deviceBooks.length) return new Set()
@@ -286,9 +299,35 @@ export function BookTable({
   const effectiveWidth = Math.max(containerWidth || 0, MIN_TABLE_WIDTH)
   const colWidth = makeColWidth(table, effectiveWidth)
 
+  function getCursorIndex(): number {
+    if (selectedBookId == null) return -1
+    return rows.findIndex(r => r.original.ID === selectedBookId)
+  }
+
+  function handleTableKeyDown(e: React.KeyboardEvent) {
+    if (!rows.length) return
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const current = getCursorIndex()
+      const newIdx = current === -1 ? 0 : e.key === 'ArrowDown'
+        ? Math.min(current + 1, rows.length - 1)
+        : Math.max(current - 1, 0)
+      const book = rows[newIdx].original
+      onSelectBook?.(book)
+      onSelectionChange?.(new Set([book.ID as number]), book)
+      rowVirtualizer.scrollToIndex(newIdx, { align: 'auto' })
+    } else if (e.key === 'Enter') {
+      const current = getCursorIndex()
+      if (current >= 0) onDoubleClickBook?.(rows[current].original)
+    } else if (e.key === 'Escape') {
+      ;(e.currentTarget as HTMLElement).blur()
+    }
+  }
+
   function handleRowClick(e: React.MouseEvent, book: Book, rowIndex: number) {
     if (!onSelectionChange) {
       onSelectBook?.(book)
+      containerRef.current?.focus({ preventScroll: true })
       return
     }
     const next = computeNext(
@@ -300,6 +339,7 @@ export function BookTable({
     )
     onSelectionChange(next, book)
     onSelectBook?.(book)
+    containerRef.current?.focus({ preventScroll: true })
   }
 
   function handleContextMenu(e: React.MouseEvent, book: Book, rowIndex: number) {
@@ -354,10 +394,18 @@ export function BookTable({
           <Icon icon="search" size={16} />
         </span>
         <input
+          ref={searchInputRef}
           type="text"
           placeholder="Search title, author or series…"
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Escape') {
+              e.preventDefault()
+              if (inputValue) setInputValue('')
+              else e.currentTarget.blur()
+            }
+          }}
           className="flex-1 text-[16px] line-height bg-transparent text-zinc-200 placeholder-zinc-500 outline-2 outline-hidden m-1 h-8"
         />
         {inputValue && (
@@ -413,7 +461,7 @@ export function BookTable({
           onOpenBook={onOpenBook}
         />
       ) : null}
-      <div ref={containerRef} className={`overflow-x-auto overflow-y-auto flex-1 ${viewMode === 'grid' ? 'hidden' : ''}`}>
+      <div ref={containerRef} tabIndex={0} onKeyDown={handleTableKeyDown} className={`overflow-x-auto overflow-y-auto flex-1 outline-none ${viewMode === 'grid' ? 'hidden' : ''}`}>
         <table
           className="text-sm text-zinc-200"
           style={{
