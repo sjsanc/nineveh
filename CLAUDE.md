@@ -43,6 +43,37 @@ Key patterns:
 - UI uses Blueprint v6 + Tailwind v4. Blueprint classes require the `bp6-dark` class on the root element for dark theme.
 - `@tanstack/react-table` + `@tanstack/react-virtual` for the book/device tables with virtualized rows.
 
+## Testing
+
+### Backend
+
+```bash
+go test ./internal/...
+```
+
+### Frontend
+
+Tests live in `frontend/src/test/`. Uses Vitest + React Testing Library with jsdom.
+
+```bash
+cd frontend
+npm test          # single run
+npm run test:watch  # interactive watch mode
+```
+
+Tests are co-located under `src/test/` and follow the `*.test.tsx` convention. `globals: true` is set so `describe`/`it`/`vi`/`expect` are available without imports.
+
+For components that import from `wailsjs/`, mock the binding at the top of the test file:
+
+```ts
+vi.mock('../../../wailsjs/go/main/App', () => ({
+  GetBooks: vi.fn(),
+  // ...
+}))
+```
+
+Components with no Wails imports (e.g. `Rating`, `ErrorBoundary`) can be tested directly without any mocking.
+
 ## Releases & Deployment
 
 ### Cutting a release
