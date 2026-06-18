@@ -12,7 +12,16 @@ import (
 	"nineveh/internal/metadata"
 )
 
-type openLibrary struct{}
+type openLibrary struct {
+	baseURL string // overridable in tests; defaults to https://openlibrary.org
+}
+
+func (ol *openLibrary) host() string {
+	if ol.baseURL != "" {
+		return ol.baseURL
+	}
+	return "https://openlibrary.org"
+}
 
 func (ol *openLibrary) fetch(ctx context.Context, book *metadata.Book) ([]FetchedMetadata, error) {
 	if book.ISBN != "" {
@@ -58,8 +67,8 @@ type olCover struct {
 
 func (ol *openLibrary) fetchByISBN(ctx context.Context, isbn string) ([]FetchedMetadata, error) {
 	bibkey := "ISBN:" + isbn
-	reqURL := fmt.Sprintf("https://openlibrary.org/api/books?bibkeys=%s&format=json&jscmd=data",
-		url.QueryEscape(bibkey))
+	reqURL := fmt.Sprintf("%s/api/books?bibkeys=%s&format=json&jscmd=data",
+		ol.host(), url.QueryEscape(bibkey))
 
 	body, err := doGet(ctx, reqURL)
 	if err != nil {
@@ -160,7 +169,7 @@ func (ol *openLibrary) fetchByTitleAuthor(ctx context.Context, title string, aut
 	params.Set("limit", "3")
 	params.Set("fields", "title,author_name,publisher,subject,first_publish_year,isbn,cover_i")
 
-	reqURL := "https://openlibrary.org/search.json?" + params.Encode()
+	reqURL := ol.host() + "/search.json?" + params.Encode()
 	body, err := doGet(ctx, reqURL)
 	if err != nil {
 		return nil, err
