@@ -1,10 +1,12 @@
 import DOMPurify from 'dompurify'
+import { useState } from 'react'
 import { GetCoverData } from '../../wailsjs/go/main/App'
 import { Book } from '../types'
 import { FORMAT_COLORS, formatDate, formatDescription, formatSize } from '../utils'
 import { useResizablePanel } from '../lib/useResizablePanel'
 import { useCoverImage } from '../lib/useCoverImage'
 import { Rating } from './Rating'
+import { CoverLightbox } from './CoverLightbox'
 
 interface Props {
   book: Book
@@ -16,6 +18,7 @@ interface Props {
 export function BookPanel({ book, width, onWidthChange, onOpenBook }: Props) {
   const handleDragMouseDown = useResizablePanel(width, onWidthChange)
   const coverSrc = useCoverImage(book.CoverPath || undefined, GetCoverData)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   return (
     <div
@@ -33,7 +36,8 @@ export function BookPanel({ book, width, onWidthChange, onOpenBook }: Props) {
             <img
               src={coverSrc}
               alt={book.Title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover cursor-zoom-in"
+              onClick={() => setLightboxOpen(true)}
             />
           ) : (
             <div className="flex flex-col items-center justify-center text-zinc-600 w-full h-full">
@@ -134,6 +138,9 @@ export function BookPanel({ book, width, onWidthChange, onOpenBook }: Props) {
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatDescription(book.Description)) }}
           />
         </div>
+      )}
+      {lightboxOpen && coverSrc && (
+        <CoverLightbox src={coverSrc} alt={book.Title} onClose={() => setLightboxOpen(false)} />
       )}
     </div>
   )
