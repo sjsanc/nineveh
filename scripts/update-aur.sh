@@ -8,10 +8,7 @@ mkdir -p ~/.ssh
 printf '%s\n' "${AUR_SSH_KEY}" > ~/.ssh/aur_key
 chmod 600 ~/.ssh/aur_key
 
-# AUR's known ed25519 host key — https://wiki.archlinux.org/title/AUR_submission_guidelines
-cat >> ~/.ssh/known_hosts << 'EOF'
-aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBInoXFzoS8oj69DcEMQMdiVOJrNm/UBKCpQkLpCOA
-EOF
+ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
 
 export GIT_SSH_COMMAND="ssh -i ~/.ssh/aur_key -o IdentitiesOnly=yes"
 
