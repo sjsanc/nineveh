@@ -1,33 +1,41 @@
-import { useEffect } from 'react'
-import ReactDOM from 'react-dom'
+import { useEffect } from "react";
+import ReactDOM from "react-dom";
 
 interface Props {
-  src: string
-  alt: string
-  onClose: () => void
+	src: string;
+	alt: string;
+	onClose: () => void;
 }
 
 export function CoverLightbox({ src, alt, onClose }: Props) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [onClose])
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			if (e.key === "Escape") onClose();
+		};
+		document.addEventListener("keydown", handler);
+		return () => document.removeEventListener("keydown", handler);
+	}, [onClose]);
 
-  return ReactDOM.createPortal(
-    <div
-      className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center"
-      onClick={onClose}
-    >
-      <img
-        src={src}
-        alt={alt}
-        className="h-[80vh] max-w-[80vw] w-auto object-contain rounded shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      />
-    </div>,
-    document.body
-  )
+	return ReactDOM.createPortal(
+		<div
+			role="dialog"
+			aria-modal="true"
+			aria-label="Cover image"
+			className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center"
+			onClick={onClose}
+			onKeyDown={(e) => {
+				if (e.key === "Escape") onClose();
+			}}
+			tabIndex={-1}
+		>
+			<img
+				src={src}
+				alt={alt}
+				className="h-[80vh] max-w-[80vw] w-auto object-contain rounded shadow-2xl"
+				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
+			/>
+		</div>,
+		document.body,
+	);
 }

@@ -1,3 +1,3 @@
 export function Dash() {
-  return <span className="text-zinc-600">—</span>
+	return <span className="text-zinc-600">—</span>;
 }

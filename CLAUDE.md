@@ -43,6 +43,22 @@ Key patterns:
 - `@tanstack/react-table` + `@tanstack/react-virtual` for virtualized book/device tables.
 - Shared hooks live in `src/lib/` (e.g. `useCoverImage`, `useShiftCtrlSelect`, `useResizablePanel`).
 
+## Linting & Formatting
+
+The frontend uses [Biome](https://biomejs.dev/) for linting and formatting (`frontend/biome.json`). Run it from `frontend/`:
+
+```bash
+npx biome check src/          # lint only
+npx biome check --write src/  # lint + apply safe fixes
+npx biome format --write src/ # format only
+```
+
+`dist/` and `wailsjs/` are excluded (build/generated output). Two rules are disabled project-wide:
+- `security/noDangerouslySetInnerHtml` — DOMPurify sanitizes all HTML before rendering.
+- `a11y/noNoninteractiveTabindex` — table containers require `tabIndex={0}` for keyboard navigation.
+
+Biome must pass clean (`0 errors`) before committing frontend changes.
+
 ## Testing
 
 ### Backend
@@ -57,6 +73,7 @@ Tests live in `frontend/src/test/`. Uses Vitest + React Testing Library with jsd
 
 ```bash
 cd frontend
+npm run typecheck   # type-check without emitting
 npm test            # single run
 npm run test:watch  # watch mode
 ```
