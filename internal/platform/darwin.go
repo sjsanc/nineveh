@@ -9,9 +9,9 @@ import (
 	"nineveh/internal/device"
 )
 
-type stubDetector struct{}
+type darwinDetector struct{}
 
-func (stubDetector) Detect() ([]device.Device, error) { return nil, nil }
+func (darwinDetector) Detect() ([]device.Device, error) { return device.Detect() }
 
 type stubWatcher struct{}
 
@@ -25,7 +25,7 @@ func (darwinOpener) Open(path string) error {
 
 func New() Platform {
 	return Platform{
-		Detector: stubDetector{},
+		Detector: darwinDetector{},
 		Watcher:  stubWatcher{},
 		Opener:   darwinOpener{},
 	}
