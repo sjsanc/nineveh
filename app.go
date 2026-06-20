@@ -43,6 +43,7 @@ func NewApp() *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	slog.Info("nineveh starting")
 
 	dataDir := filepath.Join(xdg.DataHome, "nineveh")
 	if err := os.MkdirAll(dataDir, 0755); err != nil {
@@ -53,6 +54,7 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
+	slog.Info("database opened", "path", filepath.Join(dataDir, "nineveh.db"))
 	a.db = d
 	a.library = library.New(d, dataDir)
 	if p, err := prefs.Open(); err == nil {
@@ -62,11 +64,13 @@ func (a *App) startup(ctx context.Context) {
 	}
 	if initial, err := a.platform.Detector.Detect(); err == nil {
 		a.devices = initial
+		slog.Info("initial device scan complete", "count", len(initial))
 	}
 	go a.watchDevices()
 }
 
 func (a *App) shutdown(ctx context.Context) {
+	slog.Info("nineveh shutting down")
 	if a.db != nil {
 		a.db.Close()
 	}
@@ -179,18 +183,27 @@ func (a *App) ApplyFetchedCover(bookID int64, coverURL string) (string, error) {
 }
 
 func (a *App) DeleteBook(id int64) error {
+	slog.Info("deleting book", "id", id)
 	return a.library.DeleteBook(id)
 }
 
 func (a *App) ImportFile(path string) (*metadata.Book, error) {
-	return a.library.ImportFile(path)
+	slog.Info("importing file", "path", path)
+	book, err := a.library.ImportFile(path)
+	if err != nil {
+		return nil, err
+	}
+	slog.Info("file imported", "title", book.Title)
+	return book, nil
 }
 
 func (a *App) ImportDir(dir string) ([]*metadata.Book, error) {
+	slog.Info("importing directory", "dir", dir)
 	books, errs := a.library.ImportDir(dir)
 	for _, err := range errs {
 		slog.Warn("import error", "err", err)
 	}
+	slog.Info("directory import complete", "imported", len(books), "errors", len(errs))
 	return books, nil
 }
 
@@ -218,10 +231,12 @@ func (a *App) SelectFiles() ([]string, error) {
 }
 
 func (a *App) ImportFromCalibre(path string) ([]*metadata.Book, error) {
+	slog.Info("importing from calibre", "path", path)
 	books, errs := a.library.ImportFromCalibre(path)
 	for _, err := range errs {
 		slog.Warn("calibre import error", "err", err)
 	}
+	slog.Info("calibre import complete", "imported", len(books), "errors", len(errs))
 	return books, nil
 }
 
@@ -292,11 +307,13 @@ func (a *App) refreshDevices() {
 	a.devicesMu.Unlock()
 
 	if !deviceSetsEqual(deviceSet(detected), prev) {
+		slog.Info("device set changed", "count", len(detected))
 		runtime.EventsEmit(a.ctx, "devices:changed", deviceInfos(detected))
 	}
 }
 
 func (a *App) watchDevices() {
+	slog.Info("device watcher starting")
 	// Polling runs always: ensures eventual consistency when a uevent fires before
 	// the block device is fully ready to mount (e.g. immediately after reconnect).
 	go a.watchDevicesPoll()
@@ -354,6 +371,7 @@ func (a *App) EjectDevice(deviceID string) error {
 	infos := deviceInfos(a.devices)
 	a.devicesMu.Unlock()
 
+	slog.Info("device ejected", "device_id", deviceID)
 	runtime.EventsEmit(a.ctx, "devices:changed", infos)
 	return nil
 }
@@ -411,6 +429,7 @@ func (a *App) OpenBook(bookID int64, format string) error {
 }
 
 func (a *App) SendBook(bookID int64, deviceID string, format metadata.Format) error {
+	slog.Info("sending book to device", "book_id", bookID, "device_id", deviceID, "format", format)
 	book, err := a.library.GetBook(bookID)
 	if err != nil {
 		return fmt.Errorf("get book: %w", err)
@@ -420,6 +439,7 @@ func (a *App) SendBook(bookID int64, deviceID string, format metadata.Format) er
 			if err := d.SendBook(book, format); err != nil {
 				return err
 			}
+			slog.Info("book sent", "title", book.Title, "device_id", deviceID)
 			return nil
 		}
 	}

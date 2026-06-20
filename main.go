@@ -2,7 +2,10 @@ package main
 
 import (
 	"embed"
+	"io"
+	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -16,10 +19,24 @@ import (
 var assets embed.FS
 
 func main() {
-	// Create an instance of the app structure
+	dataDir := filepath.Join(xdg.DataHome, "nineveh")
+	if err := os.MkdirAll(dataDir, 0755); err != nil {
+		panic(err)
+	}
+
+	logFile, err := os.OpenFile(filepath.Join(dataDir, "nineveh.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer logFile.Close()
+
+	slog.SetDefault(slog.New(slog.NewTextHandler(io.MultiWriter(os.Stderr, logFile), &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	})))
+
 	app := NewApp()
 
-	coverDir := filepath.Join(xdg.DataHome, "nineveh", ".covers")
+	coverDir := filepath.Join(dataDir, ".covers")
 	coverHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/covers/") {
 			name := filepath.Base(r.URL.Path)
@@ -29,8 +46,7 @@ func main() {
 		http.NotFound(w, r)
 	})
 
-	// Create application with options
-	err := wails.Run(&options.App{
+	if err := wails.Run(&options.App{
 		Title:  "nineveh",
 		Width:  1024,
 		Height: 768,
@@ -44,9 +60,7 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
-	})
-
-	if err != nil {
-		println("Error:", err.Error())
+	}); err != nil {
+		slog.Error("wails run failed", "err", err)
 	}
 }
