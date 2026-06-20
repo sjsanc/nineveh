@@ -34,7 +34,7 @@ export function BookPanel({
 
 	return (
 		<div
-			className="shrink-0 h-full border-l border-zinc-800 bg-zinc-950 flex flex-col overflow-y-auto relative"
+			className="shrink-0 h-full border-l border-zinc-800 bg-zinc-950 overflow-y-auto relative"
 			style={{ width }}
 		>
 			<div
@@ -228,7 +228,7 @@ export function BookPanel({
 
 			{/* Description */}
 			{book.Description && (
-				<div className="px-4 py-3 flex-1 overflow-y-auto">
+				<div className="px-4 py-3">
 					<div
 						className="prose prose-invert prose-sm max-w-none text-zinc-400 text-[14px] leading-tight [&_p]:my-0.5 [&_p]:leading-tight [&_ul]:my-1 [&_li]:my-0"
 						dangerouslySetInnerHTML={{
