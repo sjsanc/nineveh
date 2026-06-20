@@ -33,6 +33,7 @@ interface Props {
 	device?: DeviceInfo;
 	isLoading?: boolean;
 	onRemoveFromDevice?: (paths: string[]) => void;
+	onImportFromDevice?: (paths: string[]) => void;
 	onSelectFile?: (file: BookFile | null) => void;
 	onEject?: () => void;
 }
@@ -115,6 +116,7 @@ export function DeviceTable({
 	device,
 	isLoading,
 	onRemoveFromDevice,
+	onImportFromDevice,
 	onSelectFile,
 	onEject,
 }: Props) {
@@ -174,11 +176,7 @@ export function DeviceTable({
 			rows.slice(lo, hi + 1).map((r) => r.original.Path),
 		);
 		setSelectedPaths(next);
-		onSelectFile?.(
-			next.size === 1
-				? (data.find((f) => f.Path === [...next][0]) ?? null)
-				: null,
-		);
+		onSelectFile?.(data.find((f) => f.Path === path) ?? null);
 		containerRef.current?.focus({ preventScroll: true });
 	}
 
@@ -341,6 +339,15 @@ export function DeviceTable({
 								<MenuItem
 									disabled
 									text={`${selectionCount} file${selectionCount === 1 ? "" : "s"} selected`}
+								/>
+								<MenuDivider />
+								<MenuItem
+									text={`Send to library`}
+									icon="import"
+									onClick={() => {
+										onImportFromDevice?.([...selectedPaths]);
+										setCtxMenu(null);
+									}}
 								/>
 								<MenuDivider />
 								<MenuItem

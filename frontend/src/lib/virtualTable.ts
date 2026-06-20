@@ -7,9 +7,10 @@ export function makeColWidth<T>(table: Table<T>, containerWidth: number) {
 		containerWidth > 0 && total > 0 ? (size / total) * containerWidth : size;
 }
 
-export function virtualPadding<TScrollElement extends Element | Window, TItemElement extends Element>(
-	virtualizer: Virtualizer<TScrollElement, TItemElement>,
-) {
+export function virtualPadding<
+	TScrollElement extends Element | Window,
+	TItemElement extends Element,
+>(virtualizer: Virtualizer<TScrollElement, TItemElement>) {
 	const items = virtualizer.getVirtualItems();
 	const total = virtualizer.getTotalSize();
 	return {

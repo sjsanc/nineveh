@@ -31,6 +31,8 @@ export function GetDeviceFileCover(arg1:string):Promise<string>;
 
 export function GetPreferences():Promise<prefs.Preferences>;
 
+export function ImportBooksFromDevice(arg1:Array<string>):Promise<number>;
+
 export function ImportDir(arg1:string):Promise<Array<metadata.Book>>;
 
 export function ImportFile(arg1:string):Promise<metadata.Book>;

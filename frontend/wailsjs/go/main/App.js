@@ -54,6 +54,10 @@ export function GetPreferences() {
   return window['go']['main']['App']['GetPreferences']();
 }
 
+export function ImportBooksFromDevice(arg1) {
+  return window['go']['main']['App']['ImportBooksFromDevice'](arg1);
+}
+
 export function ImportDir(arg1) {
   return window['go']['main']['App']['ImportDir'](arg1);
 }

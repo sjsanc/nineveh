@@ -117,7 +117,7 @@ func parseMobiFile(filePath string) (*Book, error) {
 	}
 
 	if coverOffset >= 0 {
-		coverRecordIdx := int(mobi.firstNonBook) + coverOffset
+		coverRecordIdx := int(mobi.firstImageIndex) + coverOffset
 		if coverRecordIdx > 0 && coverRecordIdx < int(numRecords) {
 			if data, err := readMobiRecord(f, recordOffsets, coverRecordIdx, int(numRecords)); err == nil {
 				book.CoverData = data
@@ -129,26 +129,42 @@ func parseMobiFile(filePath string) (*Book, error) {
 }
 
 type mobiHeaderFields struct {
-	headerLength   uint32
-	firstNonBook   uint32 // first image record index
-	fullNameOffset uint32 // from start of record 0
-	fullNameLength uint32
-	exthFlags      uint32
+	headerLength    uint32
+	firstNonBook    uint32 // first non-text record (may include FLIS/FCIS/DATP before images)
+	firstImageIndex uint32 // first actual image record; EXTH coveroffset is relative to this
+	fullNameOffset  uint32 // from start of record 0
+	fullNameLength  uint32
+	exthFlags       uint32
 }
 
 func parseMobiHeaderFields(rec0 []byte) (mobiHeaderFields, error) {
 	// All field offsets are absolute within record 0.
 	// MOBI header starts at offset 16 within record 0.
+	// Field layout (absolute rec0 offsets):
+	//   [20:24] headerLength
+	//   [80:84] firstNonBookIndex  (MOBI header 0x40)
+	//   [84:88] fullNameOffset     (MOBI header 0x44)
+	//   [88:92] fullNameLength     (MOBI header 0x48)
+	//  [108:112] firstImageIndex   (MOBI header 0x5C) — present when headerLength >= 0x5C+4
+	//  [128:132] exthFlags         (MOBI header 0x70)
 	if len(rec0) < 132 {
 		return mobiHeaderFields{}, fmt.Errorf("record 0 too short (%d bytes)", len(rec0))
 	}
-	return mobiHeaderFields{
+	f := mobiHeaderFields{
 		headerLength:   binary.BigEndian.Uint32(rec0[20:24]),
 		firstNonBook:   binary.BigEndian.Uint32(rec0[80:84]),
 		fullNameOffset: binary.BigEndian.Uint32(rec0[84:88]),
 		fullNameLength: binary.BigEndian.Uint32(rec0[88:92]),
 		exthFlags:      binary.BigEndian.Uint32(rec0[128:132]),
-	}, nil
+	}
+	// firstImageIndex is at MOBI header offset 0x5C = rec0[108].
+	// Older/shorter headers don't include it; fall back to firstNonBook.
+	if len(rec0) >= 112 && f.headerLength >= 0x5C+4 {
+		f.firstImageIndex = binary.BigEndian.Uint32(rec0[108:112])
+	} else {
+		f.firstImageIndex = f.firstNonBook
+	}
+	return f, nil
 }
 
 // parseEXTH parses the EXTH metadata block from rec0 starting at exthStart.

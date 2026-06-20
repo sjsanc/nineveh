@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -288,6 +289,25 @@ func (a *App) RemoveFromDevice(deviceID string, paths []string) error {
 		}
 	}
 	return fmt.Errorf("device %s not found", deviceID)
+}
+
+func (a *App) ImportBooksFromDevice(paths []string) (int, error) {
+	var added, failCount int
+	for _, p := range paths {
+		if _, err := a.library.ImportFile(p); err != nil {
+			if errors.Is(err, library.ErrDuplicate) {
+				continue
+			}
+			slog.Warn("import from device failed", "path", p, "err", err)
+			failCount++
+			continue
+		}
+		added++
+	}
+	if failCount > 0 {
+		return added, fmt.Errorf("%d file(s) failed to import", failCount)
+	}
+	return added, nil
 }
 
 func (a *App) cachedDevices() []device.Device {

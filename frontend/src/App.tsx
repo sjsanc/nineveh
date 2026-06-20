@@ -6,6 +6,7 @@ import {
 	EjectDevice,
 	FetchBookMetadata,
 	GetBooks,
+	ImportBooksFromDevice,
 	ImportFile,
 	ImportFromCalibre,
 	ListDeviceBooks,
@@ -343,6 +344,22 @@ function App() {
 		}
 	}
 
+	async function handleImportFromDevice(paths: string[]) {
+		try {
+			const added = await ImportBooksFromDevice(paths);
+			const refreshed = await GetBooks();
+			setBooks(refreshed ?? []);
+			const msg =
+				added === paths.length
+					? `Added ${added} book${added === 1 ? "" : "s"} to library`
+					: `Added ${added} of ${paths.length} to library`;
+			showStatus(msg, 4000);
+		} catch (err) {
+			showStatus("Import from device failed");
+			console.error(err);
+		}
+	}
+
 	async function handleAddBooks() {
 		try {
 			const paths = await SelectFiles();
@@ -468,6 +485,7 @@ function App() {
 										device={activeDevice ?? undefined}
 										isLoading={isLoadingDeviceBooks}
 										onRemoveFromDevice={handleRemoveFromDevice}
+										onImportFromDevice={handleImportFromDevice}
 										onSelectFile={setSelectedDeviceFile}
 										onEject={
 											activeDeviceID

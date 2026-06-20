@@ -87,7 +87,7 @@ export function BookContextMenu({
 							))}
 						</MenuItem>
 					))}
-				<MenuDivider />
+				{selectionCount === 1 && formats.length > 0 && <MenuDivider />}
 				{selectionCount === 1 && (
 					<MenuItem
 						text="Edit Metadata"
@@ -117,7 +117,7 @@ export function BookContextMenu({
 					}}
 				/>
 				{devices.length === 0 ? (
-					<MenuItem text="Send to Device" icon="upload" disabled />
+					<MenuItem text="Send to device" icon="upload" disabled />
 				) : devices.length === 1 ? (
 					<MenuItem
 						text={`Send to "${devices[0].Name}"`}
@@ -128,7 +128,7 @@ export function BookContextMenu({
 						}}
 					/>
 				) : (
-					<MenuItem text="Send to Device" icon="upload">
+					<MenuItem text="Send to device" icon="upload">
 						{devices.map((d) => (
 							<MenuItem
 								key={d.ID}
