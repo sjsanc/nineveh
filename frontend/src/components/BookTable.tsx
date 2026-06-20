@@ -226,6 +226,7 @@ export function BookTable({
 		() => (localStorage.getItem("viewMode") as "table" | "grid") || "table",
 	);
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const [gridSort, setGridSort] = useState("title-asc");
 	const [inputValue, setInputValue] = useState(searchQuery);
 	const [globalFilter, setGlobalFilter] = useState(searchQuery);
 	const [columnSizing, setColumnSizing] =
@@ -318,6 +319,17 @@ export function BookTable({
 		const t = setTimeout(() => setGlobalFilter(inputValue), 200);
 		return () => clearTimeout(t);
 	}, [inputValue]);
+
+	useEffect(() => {
+		if (viewMode !== "grid") {
+			setSorting([]);
+			return;
+		}
+		const dash = gridSort.lastIndexOf("-");
+		const id = gridSort.slice(0, dash);
+		const desc = gridSort.slice(dash + 1) === "desc";
+		setSorting([{ id, desc }]);
+	}, [gridSort, viewMode]);
 
 	const table = useReactTable({
 		data,
@@ -451,7 +463,26 @@ export function BookTable({
 						</span>
 					</span>
 				)}
-				<div className="flex items-center gap-0.5 px-2 border-l border-zinc-800 shrink-0">
+				{viewMode === "grid" && (
+					<div className="flex items-center border-l border-zinc-800 px-2 shrink-0">
+						<select
+							value={gridSort}
+							onChange={(e) => setGridSort(e.target.value)}
+							className="bg-zinc-900 text-zinc-300 text-xs border border-zinc-700 outline-none rounded px-1.5 h-7 shrink-0 cursor-pointer hover:border-zinc-500 transition-colors"
+						>
+							<option value="title-asc">Title A→Z</option>
+							<option value="title-desc">Title Z→A</option>
+							<option value="authors-asc">Author A→Z</option>
+							<option value="authors-desc">Author Z→A</option>
+							<option value="rating-desc">Rating ↓</option>
+							<option value="rating-asc">Rating ↑</option>
+							<option value="dateAdded-desc">Newest first</option>
+							<option value="dateAdded-asc">Oldest first</option>
+							<option value="isRead-asc">Unread first</option>
+						</select>
+					</div>
+				)}
+				<div className="flex items-center gap-1 px-2 border-l border-zinc-800 shrink-0">
 					<button
 						type="button"
 						onClick={() => {
