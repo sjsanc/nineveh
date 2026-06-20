@@ -23,7 +23,10 @@ interface Props {
 }
 
 export function DevicePanel({ file, books, width, onWidthChange }: Props) {
-	const handleDragMouseDown = useResizablePanel(width, onWidthChange);
+	const [handleDragMouseDown, panelRef] = useResizablePanel(
+		width,
+		onWidthChange,
+	);
 
 	const index = useMemo(() => buildIndex(books), [books]);
 	const book = matchBook(file, index);
@@ -38,6 +41,7 @@ export function DevicePanel({ file, books, width, onWidthChange }: Props) {
 
 	return (
 		<div
+			ref={panelRef}
 			className="shrink-0 h-full border-l border-zinc-800 bg-zinc-950 flex flex-col overflow-y-auto relative"
 			style={{ width }}
 		>

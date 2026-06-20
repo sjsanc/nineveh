@@ -28,12 +28,16 @@ export function BookPanel({
 	onOpenBook,
 	onAppendFilter,
 }: Props) {
-	const handleDragMouseDown = useResizablePanel(width, onWidthChange);
+	const [handleDragMouseDown, panelRef] = useResizablePanel(
+		width,
+		onWidthChange,
+	);
 	const coverSrc = useCoverImage(book.CoverPath || undefined, GetCoverData);
 	const [lightboxOpen, setLightboxOpen] = useState(false);
 
 	return (
 		<div
+			ref={panelRef}
 			className="shrink-0 h-full border-l border-zinc-800 bg-zinc-950 overflow-y-auto relative"
 			style={{ width }}
 		>
