@@ -23,7 +23,7 @@ Data lives in `~/.local/share/nineveh/` (XDG data home):
 - `.covers/` — cover images stored by SHA-256 hash
 
 Internal packages:
-- `internal/db` — SQLite via `modernc.org/sqlite` (pure Go, no cgo). Schema is applied from an embedded `schema.sql` on open.
+- `internal/db` — SQLite via `modernc.org/sqlite` (pure Go, no cgo). Schema is managed via embedded Goose migrations in `internal/db/migrations/`; all pending migrations run automatically on `Open()`. To add a schema change, create `internal/db/migrations/000NN_description.sql` with `-- +goose Up` / `-- +goose Down` sections.
 - `internal/library` — thin layer over `db`; handles file import, Calibre import, cover persistence, and deduplication (`ErrDuplicate`).
 - `internal/metadata` — format-specific parsers (EPUB, MOBI, AZW3, PDF) behind the `Parser` interface. The `Book` struct is the canonical data model.
 - `internal/device` — `Device` interface with platform-specific implementations. Linux: MTP (`mtp_linux.go`) + mount-point (`detect_linux.go`). Windows: removable-drive scan (`detect_windows.go`, `mtp_windows.go`). macOS: stubs only (no device support yet).

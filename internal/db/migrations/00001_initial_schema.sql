@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS books (
 	id             INTEGER PRIMARY KEY AUTOINCREMENT,
 	title          TEXT NOT NULL,
@@ -58,3 +59,14 @@ CREATE TABLE IF NOT EXISTS device_books (
 	book_id   INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
 	PRIMARY KEY (device_id, book_id)
 );
+
+-- +goose Down
+DROP TABLE IF EXISTS device_books;
+DROP TABLE IF EXISTS devices;
+DROP TABLE IF EXISTS formats;
+DROP TABLE IF EXISTS book_tags;
+DROP TABLE IF EXISTS tags;
+DROP TABLE IF EXISTS book_authors;
+DROP TABLE IF EXISTS authors;
+DROP INDEX IF EXISTS idx_books_series;
+DROP TABLE IF EXISTS books;

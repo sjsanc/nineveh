@@ -3,7 +3,9 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"io/fs"
 
+	"github.com/pressly/goose/v3"
 	_ "modernc.org/sqlite"
 )
 
@@ -31,8 +33,8 @@ func Open(path string) (*DB, error) {
 	}
 
 	d := &DB{conn: conn}
-	if err := d.initSchema(); err != nil {
-		return nil, fmt.Errorf("init schema: %w", err)
+	if err := d.migrate(); err != nil {
+		return nil, fmt.Errorf("migrate: %w", err)
 	}
 	return d, nil
 }
@@ -41,9 +43,18 @@ func (d *DB) Close() error {
 	return d.conn.Close()
 }
 
-func (d *DB) initSchema() error {
-	if _, err := d.conn.Exec(schema); err != nil {
-		return fmt.Errorf("exec schema: %w", err)
+func (d *DB) migrate() error {
+	fsys, err := fs.Sub(embeddedMigrations, "migrations")
+	if err != nil {
+		return fmt.Errorf("sub fs: %w", err)
+	}
+	goose.SetBaseFS(fsys)
+	goose.SetLogger(goose.NopLogger())
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		return fmt.Errorf("set dialect: %w", err)
+	}
+	if err := goose.Up(d.conn, "."); err != nil {
+		return fmt.Errorf("up: %w", err)
 	}
 	return nil
 }
