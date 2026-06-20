@@ -11,7 +11,7 @@ interface Props {
 	devices: DeviceInfo[];
 	onClose: () => void;
 	onOpenBook?: (bookId: number, format: string) => void;
-	onEditBook?: (book: Book) => void;
+	onEditBook?: (book: Book, orderedList: Book[]) => void;
 	onFetchMetadata?: (book: Book) => void;
 	onToggleRead?: (bookIds: number[], isRead: boolean) => void;
 	onSendToDevice?: (bookIds: number[], deviceId: string) => void;
@@ -88,16 +88,18 @@ export function BookContextMenu({
 						</MenuItem>
 					))}
 				{selectionCount === 1 && formats.length > 0 && <MenuDivider />}
-				{selectionCount === 1 && (
-					<MenuItem
-						text="Edit Metadata"
-						icon="edit"
-						onClick={() => {
-							if (focusedBook) onEditBook?.(focusedBook);
-							onClose();
-						}}
-					/>
-				)}
+				<MenuItem
+					text="Edit Metadata"
+					icon="edit"
+					onClick={() => {
+						if (focusedBook)
+							onEditBook?.(
+								focusedBook,
+								selectionCount > 1 ? selectedBooks : visibleBooks,
+							);
+						onClose();
+					}}
+				/>
 				{selectionCount === 1 && (
 					<MenuItem
 						text="Fetch Metadata"

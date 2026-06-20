@@ -36,7 +36,7 @@ interface Props {
 	onSelectionChange?: (ids: Set<number>, focused: Book | null) => void;
 	onDoubleClickBook?: (book: Book) => void;
 	onSendToDevice?: (bookIds: number[], deviceId: string) => void;
-	onEditBook?: (book: Book) => void;
+	onEditBook?: (book: Book, orderedList: Book[]) => void;
 	onFetchMetadata?: (book: Book) => void;
 	onToggleRead?: (bookIds: number[], isRead: boolean) => void;
 	onRemoveBooks?: (ids: number[]) => void;

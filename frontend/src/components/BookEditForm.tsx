@@ -74,9 +74,29 @@ interface Props {
 	book: Book;
 	onClose: () => void;
 	onSave: (updated: Book) => void;
+	onNavigate?: (direction: 1 | -1, staged: Book | null) => void;
+	onSaveAll?: (current: Book) => void;
+	canGoPrev?: boolean;
+	canGoNext?: boolean;
+	isMultiEdit?: boolean;
+	isSavingAll?: boolean;
+	stagedCount?: number;
+	isCurrentStaged?: boolean;
 }
 
-export function BookEditForm({ book, onClose, onSave }: Props) {
+export function BookEditForm({
+	book,
+	onClose,
+	onSave,
+	onNavigate,
+	onSaveAll,
+	canGoPrev,
+	canGoNext,
+	isMultiEdit,
+	isSavingAll,
+	stagedCount = 0,
+	isCurrentStaged = false,
+}: Props) {
 	const [allAuthors, setAllAuthors] = useState<string[]>([]);
 	const [allTags, setAllTags] = useState<string[]>([]);
 	const [allSeries, setAllSeries] = useState<string[]>([]);
@@ -86,12 +106,20 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
 		control,
 		handleSubmit,
 		reset,
+		getValues,
 		formState: { errors, isSubmitting, isDirty },
 	} = useForm<FormValues>({
 		// biome-ignore lint/suspicious/noExplicitAny: zodResolver type doesn't satisfy Resolver<FormValues> without the cast
 		resolver: zodResolver(schema) as any,
 		defaultValues: toFormValues(book),
 	});
+
+	const pendingCount = stagedCount + (!isCurrentStaged && isDirty ? 1 : 0);
+
+	function handleNav(direction: 1 | -1) {
+		const staged = isDirty ? toBook(getValues(), book) : null;
+		onNavigate?.(direction, staged);
+	}
 
 	useEffect(() => {
 		reset(toFormValues(book));
@@ -408,21 +436,54 @@ export function BookEditForm({ book, onClose, onSave }: Props) {
 				</div>
 			</div>
 
-			<div className="flex justify-end gap-3 pt-4 mt-4 border-t border-zinc-700">
-				<button
-					type="button"
-					onClick={onClose}
-					className="px-4 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
-				>
-					Cancel
-				</button>
-				<button
-					type="submit"
-					disabled={isSubmitting || !isDirty}
-					className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					{isSubmitting ? "Saving…" : "Save"}
-				</button>
+			<div className="flex justify-between pt-4 mt-4 border-t border-zinc-700">
+				<div className="flex gap-2">
+					<button
+						type="button"
+						disabled={!canGoPrev}
+						onClick={() => handleNav(-1)}
+						className="px-3 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 disabled:opacity-40 transition-colors"
+					>
+						← Prev
+					</button>
+					<button
+						type="button"
+						disabled={!canGoNext}
+						onClick={() => handleNav(1)}
+						className="px-3 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 disabled:opacity-40 transition-colors"
+					>
+						Next →
+					</button>
+				</div>
+				<div className="flex gap-3">
+					<button
+						type="button"
+						onClick={onClose}
+						className="px-4 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+					>
+						Cancel
+					</button>
+					{isMultiEdit ? (
+						<button
+							type="button"
+							disabled={isSavingAll}
+							onClick={() => onSaveAll?.(toBook(getValues(), book))}
+							className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							{isSavingAll
+								? "Saving…"
+								: `Save All Changes${pendingCount != null ? ` (${pendingCount})` : ""}`}
+						</button>
+					) : (
+						<button
+							type="submit"
+							disabled={isSubmitting || !isDirty}
+							className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							{isSubmitting ? "Saving…" : "Save"}
+						</button>
+					)}
+				</div>
 			</div>
 		</form>
 	);

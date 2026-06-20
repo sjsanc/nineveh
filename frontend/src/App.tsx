@@ -50,6 +50,7 @@ function App() {
 		new Set(),
 	);
 	const [editingBook, setEditingBook] = useState<Book | null>(null);
+	const [editNavList, setEditNavList] = useState<Book[]>([]);
 	const [fetchingBook, setFetchingBook] = useState<Book | null>(null);
 	const [metadataCandidates, setMetadataCandidates] = useState<
 		FetchedMetadata[] | null
@@ -250,6 +251,11 @@ function App() {
 				? `Sent ${sent}/${total} (${skipped} skipped — no compatible format)`
 				: `Sent ${sent} book${sent === 1 ? "" : "s"}`;
 		showStatus(msg, 4000);
+	}
+
+	function handleEditBook(book: Book, orderedList: Book[]) {
+		setEditNavList(orderedList);
+		setEditingBook(book);
 	}
 
 	function handleSaveBook(updated: Book) {
@@ -523,7 +529,7 @@ function App() {
 											handleOpenBook(book.ID as number, book.Formats[0].Format)
 										}
 										onSendToDevice={handleSendToDevice}
-										onEditBook={setEditingBook}
+										onEditBook={handleEditBook}
 										onFetchMetadata={handleFetchMetadata}
 										onToggleRead={handleToggleRead}
 										onRemoveBooks={handleRemoveBooks}
@@ -566,8 +572,15 @@ function App() {
 				<ErrorBoundary key={editingBook?.ID ?? "no-edit"}>
 					<EditBookDialog
 						book={editingBook}
-						onClose={() => setEditingBook(null)}
+						navList={editNavList}
+						onClose={() => {
+							setEditingBook(null);
+							setEditNavList([]);
+						}}
 						onSave={handleSaveBook}
+						onSaveAllComplete={(n) =>
+							showStatus(`Saved ${n} book${n === 1 ? "" : "s"}`)
+						}
 					/>
 				</ErrorBoundary>
 				{fetchingBook && (
