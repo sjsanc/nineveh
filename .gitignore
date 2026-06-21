@@ -3,3 +3,7 @@ node_modules
 frontend/dist
 frontend/package.json.md5
 TODO.md
+docs/public/
+docs/resources/
+docs/.hugo_build.lock
+.wrangler/

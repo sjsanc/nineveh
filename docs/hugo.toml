@@ -1,0 +1,28 @@
+baseURL = "https://nineveh.sjsanc.com/"
+languageCode = "en-us"
+title = "Nineveh"
+
+enableRobotsTXT = true
+
+[module]
+[[module.imports]]
+  path = "github.com/imfing/hextra"
+
+[params]
+  description = "A minimal ebook library manager"
+
+  [params.navbar]
+    displayTitle = true
+    displayLogo = false
+
+  [params.footer]
+    enable = true
+    displayCopyright = true
+    displayPoweredBy = false
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    noClasses = false
