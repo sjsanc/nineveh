@@ -36,10 +36,15 @@ export function EditableMultiSelect<TFieldValues extends FieldValues>({
 						}}
 						onRemove={(item) => field.onChange(value.filter((v) => v !== item))}
 						tagRenderer={(item) => item}
-						itemRenderer={(item, { handleClick, handleFocus, modifiers }) => {
+						itemRenderer={(
+							item,
+							{ handleClick, handleFocus, modifiers, ref, id },
+						) => {
 							if (!modifiers.matchesPredicate) return null;
 							return (
 								<MenuItem
+									ref={ref}
+									id={id}
 									key={item}
 									text={item}
 									onClick={handleClick}

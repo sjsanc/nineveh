@@ -80,7 +80,7 @@ function App() {
 	const prevDevicesRef = useRef<DeviceInfo[]>([]);
 
 	useEffect(() => {
-		OverlayToaster.createAsync({ position: "top" }).then((t) => {
+		OverlayToaster.create({ position: "top" }).then((t) => {
 			toasterRef.current = t;
 		});
 	}, []);

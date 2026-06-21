@@ -244,11 +244,13 @@ export function BookEditForm({
 										inputValueRenderer={(item) => item}
 										itemRenderer={(
 											item,
-											{ handleClick, handleFocus, modifiers },
+											{ handleClick, handleFocus, modifiers, ref, id },
 										) => {
 											if (!modifiers.matchesPredicate) return null;
 											return (
 												<MenuItem
+													ref={ref}
+													id={id}
 													key={item}
 													text={item}
 													onClick={handleClick}
