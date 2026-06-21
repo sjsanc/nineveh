@@ -571,10 +571,16 @@ function App() {
 										selectedBookIds={selectedBookIds}
 										onSelectBook={setSelectedBook}
 										onSelectionChange={handleSelectionChange}
-										onDoubleClickBook={(book) =>
-											book.Formats?.length &&
-											handleOpenBook(book.ID as number, book.Formats[0].Format)
-										}
+										onDoubleClickBook={(book) => {
+											if (appPrefs.doubleClickAction === "metadata") {
+												handleEditBook(book, books);
+											} else if (book.Formats?.length) {
+												handleOpenBook(
+													book.ID as number,
+													book.Formats[0].Format,
+												);
+											}
+										}}
 										onSendToDevice={handleSendToDevice}
 										onEditBook={handleEditBook}
 										onFetchMetadata={handleFetchMetadata}

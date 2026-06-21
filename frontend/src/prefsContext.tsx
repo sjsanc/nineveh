@@ -15,6 +15,7 @@ const defaults: prefs.Preferences = new prefs.Preferences({
 	columns: { visible: [], widths: {} },
 	fetchSources: { openLibraryEnabled: true, googleBooksEnabled: true },
 	readerApps: {},
+	doubleClickAction: "open",
 });
 
 interface PrefsContextValue {

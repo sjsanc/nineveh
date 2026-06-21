@@ -58,6 +58,12 @@ export function SettingsDialog({ onClose }: Props) {
 		);
 	}
 
+	function setDoubleClickAction(action: "open" | "metadata") {
+		updatePrefs(
+			new prefs.Preferences({ ...appPrefs, doubleClickAction: action }),
+		);
+	}
+
 	function setColumnVisible(colId: string, isVisible: boolean) {
 		const currentVisible = appPrefs.columns?.visible ?? [];
 		const allIds = CONFIGURABLE_COLUMNS.map((c) => c.id);
@@ -114,6 +120,33 @@ export function SettingsDialog({ onClose }: Props) {
 
 				{/* Body */}
 				<div className="p-6 space-y-6">
+					<section className="space-y-4">
+						<h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
+							Library
+						</h3>
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm font-medium text-zinc-200">
+									Double-click opens metadata editor
+								</p>
+								<p className="text-xs text-zinc-500">
+									When off, double-click opens the book file instead.
+								</p>
+							</div>
+							<Switch
+								checked={(appPrefs.doubleClickAction ?? "open") === "metadata"}
+								onChange={(e) =>
+									setDoubleClickAction(
+										(e.target as HTMLInputElement).checked
+											? "metadata"
+											: "open",
+									)
+								}
+								className="mb-0"
+							/>
+						</div>
+					</section>
+
 					<section className="space-y-4">
 						<h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
 							Columns

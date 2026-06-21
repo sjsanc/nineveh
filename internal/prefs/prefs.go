@@ -26,6 +26,7 @@ type Preferences struct {
 	GoogleBooksAPIKey string            `json:"googleBooksApiKey"`
 	FetchSources      FetchSourcePrefs  `json:"fetchSources"`
 	ReaderApps        map[string]string `json:"readerApps"`
+	DoubleClickAction string            `json:"doubleClickAction"`
 }
 
 var defaults = Preferences{
@@ -38,7 +39,8 @@ var defaults = Preferences{
 		OpenLibraryEnabled: true,
 		GoogleBooksEnabled: true,
 	},
-	ReaderApps: map[string]string{},
+	ReaderApps:        map[string]string{},
+	DoubleClickAction: "open",
 }
 
 type Store struct {
