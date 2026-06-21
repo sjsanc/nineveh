@@ -16,6 +16,7 @@ import { type Book, metadata } from "../types";
 import { filterItem } from "../utils";
 import { EditableMultiSelect } from "./EditableMultiSelect";
 import { Rating } from "./Rating";
+import { RichTextEditor } from "./RichTextEditor";
 
 const schema = z.object({
 	Title: z.string().min(1, "Title is required"),
@@ -440,13 +441,7 @@ export function BookEditForm({
 							control={control}
 							name="Description"
 							render={({ field }) => (
-								<textarea
-									{...field}
-									id="form-description"
-									rows={4}
-									className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"
-									placeholder="Book description"
-								/>
+								<RichTextEditor value={field.value} onChange={field.onChange} />
 							)}
 						/>
 					</div>
