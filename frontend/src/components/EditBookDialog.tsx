@@ -7,6 +7,7 @@ import { BookEditForm } from "./BookEditForm";
 interface Props {
 	book: Book | null;
 	navList: Book[];
+	allBooks?: Book[];
 	onClose: () => void;
 	onSave: (updated: Book) => void;
 	onSaveAllComplete?: (count: number) => void;
@@ -15,6 +16,7 @@ interface Props {
 export function EditBookDialog({
 	book,
 	navList,
+	allBooks,
 	onClose,
 	onSave,
 	onSaveAllComplete,
@@ -77,12 +79,23 @@ export function EditBookDialog({
 			currentFormBook.ID as number,
 			currentFormBook,
 		);
+		let saved = 0;
 		for (const [, b] of toSave) {
+			if (allBooks && b.Series && b.SeriesIndex !== 0) {
+				const conflict = allBooks.find(
+					(other) =>
+						other.ID !== b.ID &&
+						other.Series === b.Series &&
+						other.SeriesIndex === b.SeriesIndex,
+				);
+				if (conflict) continue;
+			}
 			await UpdateBook(b);
 			onSave(b);
+			saved++;
 		}
 		setIsSavingAll(false);
-		onSaveAllComplete?.(toSave.size);
+		onSaveAllComplete?.(saved);
 		onClose();
 	}
 
@@ -124,6 +137,7 @@ export function EditBookDialog({
 				<BookEditForm
 					key={(currentBook ?? book).ID as number}
 					book={currentBook ?? book}
+					allBooks={allBooks}
 					onClose={handleClose}
 					onSave={onSave}
 					onNavigate={handleNavigate}

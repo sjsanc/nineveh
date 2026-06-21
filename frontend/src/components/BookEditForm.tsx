@@ -1,4 +1,4 @@
-import { MenuItem } from "@blueprintjs/core";
+import { FormGroup, Intent, MenuItem } from "@blueprintjs/core";
 import { Suggest } from "@blueprintjs/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
@@ -72,6 +72,7 @@ function toBook(values: FormValues, originalBook: Book): Book {
 
 interface Props {
 	book: Book;
+	allBooks?: Book[];
 	onClose: () => void;
 	onSave: (updated: Book) => void;
 	onNavigate?: (direction: 1 | -1, staged: Book | null) => void;
@@ -86,6 +87,7 @@ interface Props {
 
 export function BookEditForm({
 	book,
+	allBooks,
 	onClose,
 	onSave,
 	onNavigate,
@@ -100,6 +102,7 @@ export function BookEditForm({
 	const [allAuthors, setAllAuthors] = useState<string[]>([]);
 	const [allTags, setAllTags] = useState<string[]>([]);
 	const [allSeries, setAllSeries] = useState<string[]>([]);
+	const [collisionError, setCollisionError] = useState<string | null>(null);
 	const coverSrc = useCoverImage(book.CoverPath || undefined, GetCoverData);
 
 	const {
@@ -136,6 +139,21 @@ export function BookEditForm({
 	}, []);
 
 	async function onSubmit(values: FormValues) {
+		if (allBooks && values.Series && values.SeriesIndex !== 0) {
+			const conflict = allBooks.find(
+				(b) =>
+					b.ID !== book.ID &&
+					b.Series === values.Series &&
+					b.SeriesIndex === values.SeriesIndex,
+			);
+			if (conflict) {
+				setCollisionError(
+					`Index ${values.SeriesIndex} is already used in "${values.Series}"`,
+				);
+				return;
+			}
+		}
+		setCollisionError(null);
 		try {
 			const updated = toBook(values, book);
 			await UpdateBook(updated);
@@ -211,11 +229,8 @@ export function BookEditForm({
 						/>
 					</div>
 
-					<div className="grid grid-cols-2 gap-4">
-						<div>
-							<div className="block text-sm font-medium text-zinc-300 mb-2">
-								Series
-							</div>
+					<div className="grid grid-cols-2 gap-4 items-start">
+						<FormGroup label="Series" className="!mb-0">
 							<Controller
 								control={control}
 								name="Series"
@@ -268,14 +283,14 @@ export function BookEditForm({
 									/>
 								)}
 							/>
-						</div>
-						<div>
-							<label
-								htmlFor="form-series-index"
-								className="block text-sm font-medium text-zinc-300 mb-2"
-							>
-								Series #
-							</label>
+						</FormGroup>
+						<FormGroup
+							label="Series #"
+							labelFor="form-series-index"
+							intent={collisionError ? Intent.DANGER : Intent.NONE}
+							helperText={collisionError ?? undefined}
+							className="!mb-0"
+						>
 							<Controller
 								control={control}
 								name="SeriesIndex"
@@ -289,7 +304,7 @@ export function BookEditForm({
 									/>
 								)}
 							/>
-						</div>
+						</FormGroup>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">

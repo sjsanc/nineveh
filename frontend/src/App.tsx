@@ -620,6 +620,7 @@ function App() {
 					<EditBookDialog
 						book={editingBook}
 						navList={editNavList}
+						allBooks={books}
 						onClose={() => {
 							setEditingBook(null);
 							setEditNavList([]);
