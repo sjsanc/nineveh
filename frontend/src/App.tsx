@@ -1,4 +1,9 @@
-import { OverlayToaster, type Toaster } from "@blueprintjs/core";
+import {
+	type Intent,
+	OverlayToaster,
+	Spinner,
+	type Toaster,
+} from "@blueprintjs/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	DeleteBook,
@@ -56,7 +61,6 @@ function App() {
 		FetchedMetadata[] | null
 	>(null);
 	const [fetchError, setFetchError] = useState("");
-	const [importStatus, setImportStatus] = useState("");
 	const [devices, setDevices] = useState<DeviceInfo[]>([]);
 	const [activeDeviceID, setActiveDeviceID] = useState<string | null>(null);
 	const [deviceLetterMap, setDeviceLetterMap] = useState<Map<string, string>>(
@@ -76,7 +80,7 @@ function App() {
 	const prevDevicesRef = useRef<DeviceInfo[]>([]);
 
 	useEffect(() => {
-		OverlayToaster.createAsync({ position: "bottom-right" }).then((t) => {
+		OverlayToaster.createAsync({ position: "top" }).then((t) => {
 			toasterRef.current = t;
 		});
 	}, []);
@@ -93,9 +97,27 @@ function App() {
 		});
 	}, []);
 
-	function showStatus(msg: string, ms = 3000) {
-		setImportStatus(msg);
-		setTimeout(() => setImportStatus(""), ms);
+	function showToast(
+		msg: string,
+		intent: Intent = "none",
+		ms = 3000,
+		key?: string,
+	) {
+		toasterRef.current?.show({ message: msg, intent, timeout: ms }, key);
+	}
+
+	function startProgressToast(msg: string): string {
+		return (
+			toasterRef.current?.show({
+				message: (
+					<span className="flex items-center gap-2">
+						<Spinner size={12} />
+						{msg}
+					</span>
+				),
+				timeout: 0,
+			}) ?? ""
+		);
 	}
 
 	const loadDevices = useCallback(async (): Promise<DeviceInfo[]> => {
@@ -222,35 +244,52 @@ function App() {
 
 	async function handleSendToDevice(bookIds: number[], deviceId: string) {
 		const total = bookIds.length;
-		setImportStatus(`Sending ${total} book${total === 1 ? "" : "s"}…`);
+		const key = startProgressToast(
+			`Sending ${total} book${total === 1 ? "" : "s"}…`,
+		);
 		let sent = 0;
 		let skipped = 0;
-		for (const id of bookIds) {
+		for (let i = 0; i < bookIds.length; i++) {
+			const id = bookIds[i];
 			const book = books.find((b) => b.ID === id);
 			if (!book) {
 				skipped++;
-				continue;
+			} else {
+				const bestFormat = KINDLE_FORMAT_PRIORITY.find((fmt) =>
+					book.Formats?.some((f) => f.Format === fmt),
+				);
+				if (!bestFormat) {
+					skipped++;
+				} else {
+					try {
+						await SendBook(id, deviceId, bestFormat);
+						sent++;
+					} catch (err) {
+						console.error(`SendBook failed for ${id}:`, err);
+						skipped++;
+					}
+				}
 			}
-			const bestFormat = KINDLE_FORMAT_PRIORITY.find((fmt) =>
-				book.Formats?.some((f) => f.Format === fmt),
-			);
-			if (!bestFormat) {
-				skipped++;
-				continue;
-			}
-			try {
-				await SendBook(id, deviceId, bestFormat);
-				sent++;
-			} catch (err) {
-				console.error(`SendBook failed for ${id}:`, err);
-				skipped++;
+			if (i < bookIds.length - 1) {
+				toasterRef.current?.show(
+					{
+						message: (
+							<span className="flex items-center gap-2">
+								<Spinner size={12} />
+								{`Sending ${i + 1}/${total}…`}
+							</span>
+						),
+						timeout: 0,
+					},
+					key,
+				);
 			}
 		}
 		const msg =
 			skipped > 0
 				? `Sent ${sent}/${total} (${skipped} skipped — no compatible format)`
 				: `Sent ${sent} book${sent === 1 ? "" : "s"}`;
-		showStatus(msg, 4000);
+		showToast(msg, skipped > 0 ? "warning" : "success", 4000, key);
 	}
 
 	function handleEditBook(book: Book, orderedList: Book[]) {
@@ -310,7 +349,7 @@ function App() {
 			});
 			return next;
 		});
-		showStatus(`Removed ${removed} book${removed === 1 ? "" : "s"}`);
+		showToast(`Removed ${removed} book${removed === 1 ? "" : "s"}`, "success");
 	}
 
 	async function handleEjectDevice(deviceID: string) {
@@ -341,16 +380,20 @@ function App() {
 		try {
 			await RemoveFromDevice(activeDeviceID, paths);
 			setDeviceBooks((prev) => prev.filter((b) => !paths.includes(b.Path)));
-			showStatus(
+			showToast(
 				`Removed ${paths.length} file${paths.length === 1 ? "" : "s"} from device`,
+				"success",
 			);
 		} catch (err) {
-			showStatus("Remove failed");
+			showToast("Remove failed", "danger");
 			console.error(err);
 		}
 	}
 
 	async function handleImportFromDevice(paths: string[]) {
+		const key = startProgressToast(
+			`Importing ${paths.length} book${paths.length === 1 ? "" : "s"}…`,
+		);
 		try {
 			const added = await ImportBooksFromDevice(paths);
 			const refreshed = await GetBooks();
@@ -359,9 +402,9 @@ function App() {
 				added === paths.length
 					? `Added ${added} book${added === 1 ? "" : "s"} to library`
 					: `Added ${added} of ${paths.length} to library`;
-			showStatus(msg, 4000);
+			showToast(msg, added > 0 ? "success" : "warning", 4000, key);
 		} catch (err) {
-			showStatus("Import from device failed");
+			showToast("Import from device failed", "danger", 4000, key);
 			console.error(err);
 		}
 	}
@@ -370,7 +413,7 @@ function App() {
 		try {
 			const paths = await SelectFiles();
 			if (!paths?.length) return;
-			setImportStatus(
+			const key = startProgressToast(
 				`Adding ${paths.length} book${paths.length === 1 ? "" : "s"}…`,
 			);
 			const results = await Promise.allSettled(
@@ -384,14 +427,17 @@ function App() {
 			}
 			if (added.length > 0) {
 				setBooks((prev) => [...prev, ...added]);
-				showStatus(
+				showToast(
 					`Added ${added.length} book${added.length === 1 ? "" : "s"}`,
+					"success",
+					3000,
+					key,
 				);
 			} else {
-				showStatus("Nothing added");
+				showToast("Nothing added", "warning", 3000, key);
 			}
 		} catch (err) {
-			showStatus("Add failed");
+			showToast("Add failed", "danger", 3000);
 			console.error(err);
 		}
 	}
@@ -400,19 +446,21 @@ function App() {
 		try {
 			const dir = await SelectDirectory();
 			if (!dir) return;
-
-			setImportStatus("Importing…");
+			const key = startProgressToast("Importing from Calibre…");
 			const imported = (await ImportFromCalibre(dir)) ?? [];
 			if (imported.length > 0) {
 				setBooks((prev) => [...prev, ...imported]);
-				showStatus(
+				showToast(
 					`Imported ${imported.length} book${imported.length === 1 ? "" : "s"}`,
+					"success",
+					3000,
+					key,
 				);
 			} else {
-				showStatus("Nothing new found");
+				showToast("Nothing new found", "warning", 3000, key);
 			}
 		} catch (err) {
-			showStatus("Import failed");
+			showToast("Import failed", "danger", 3000);
 			console.error(err);
 		}
 	}
@@ -421,7 +469,7 @@ function App() {
 		try {
 			await OpenBook(bookId, format);
 		} catch (err) {
-			showStatus(`Failed to open book: ${err}`);
+			showToast(`Failed to open book: ${err}`, "danger");
 			console.error(err);
 		}
 	}
@@ -437,9 +485,9 @@ function App() {
 			await ResetLibrary();
 			setBooks([]);
 			setSelectedBook(null);
-			showStatus("Library reset");
+			showToast("Library reset", "success");
 		} catch (err) {
-			showStatus("Reset failed");
+			showToast("Reset failed", "danger");
 			console.error(err);
 		}
 	}
@@ -476,7 +524,6 @@ function App() {
 					onImport={handleImportFromCalibre}
 					onAdd={handleAddBooks}
 					onReset={handleResetLibrary}
-					importStatus={importStatus}
 					onSelectDevice={handleSelectDevice}
 					isLoadingDeviceBooks={isLoadingDeviceBooks}
 				/>
@@ -579,7 +626,7 @@ function App() {
 						}}
 						onSave={handleSaveBook}
 						onSaveAllComplete={(n) =>
-							showStatus(`Saved ${n} book${n === 1 ? "" : "s"}`)
+							showToast(`Saved ${n} book${n === 1 ? "" : "s"}`, "success")
 						}
 					/>
 				</ErrorBoundary>

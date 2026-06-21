@@ -7,7 +7,6 @@ interface Props {
 	onImport: () => void;
 	onAdd: () => void;
 	onReset: () => void;
-	importStatus: string;
 	onSelectDevice: (id: string) => void;
 	isLoadingDeviceBooks: boolean;
 }
@@ -17,7 +16,6 @@ export function SubSidebar({
 	onImport,
 	onAdd,
 	onReset,
-	importStatus: _importStatus,
 	onSelectDevice,
 	isLoadingDeviceBooks,
 }: Props) {
