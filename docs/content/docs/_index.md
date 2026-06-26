@@ -2,4 +2,4 @@
 title: Documentation
 ---
 
-Browse the documentation sections using the sidebar.
+Nineveh is a local ebook library manager, intended as a minimal replacement to Calibre.

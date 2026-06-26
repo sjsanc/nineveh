@@ -7,3 +7,9 @@ docs/public/
 docs/resources/
 docs/.hugo_build.lock
 .wrangler/
+
+# TEMPORARY - lamassu logo assets, not yet integrated
+frontend/src/assets/images/lamassu.png
+frontend/src/assets/images/lamassu-thumb.png
+frontend/src/assets/images/lamassu-inverted.png
+frontend/src/assets/images/lamassu-inverted-thumb.png

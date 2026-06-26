@@ -13,21 +13,34 @@ yay -S nineveh-bin
 
 ### Windows / macOS
 
-Download the latest release from the [GitHub releases page](https://github.com/sjsanc/nineveh/releases).
+Download the latest release from the [GitHub releases page](https://github.com/sjsanc/nineveh/releases) and run the installer.
 
 ## First Run
 
-On first launch, Nineveh creates a local library at `~/.local/share/nineveh/`. No sign-in or account required.
+On first launch, Nineveh creates its data directory. No sign-in or account required.
+
+| Platform | Library and preferences |
+|----------|------------------------|
+| Linux    | `~/.local/share/nineveh/` / `~/.config/nineveh/` |
+| macOS    | `~/Library/Application Support/nineveh/` |
+| Windows  | `%LOCALAPPDATA%\nineveh\` |
+
+On macOS and Windows, both the library database and the preferences file live in the same directory.
 
 ## Adding Books
 
-- **Drag and drop** ebook files onto the library view, or use **File → Add books**.
-- Supported formats: EPUB, MOBI, AZW, AZW3, PDF.
+Use **File > Add Books** to open a file picker. You can select multiple files at once.
+
+Supported formats: EPUB, MOBI, AZW, AZW3, PDF.
 
 ## Importing from Calibre
 
-Use **File → Import from Calibre** and point Nineveh at your Calibre library directory. Nineveh will import all books, preserving metadata and covers.
+**File > Import from Calibre** and point it at your Calibre library root (the folder containing `metadata.db`). Nineveh imports all books, preserving metadata, covers, and tags.
 
-## Sending to a Device
+## Connecting a Device
 
-Connect a Kindle via USB. Nineveh detects it automatically and shows it in the sidebar. Select one or more books and click **Send to device**.
+Plug in a Kindle via USB. Nineveh detects it automatically and enables the **Devices** tab. Click the tab to switch to the device view, where you can browse the device's library and transfer books in either direction.
+
+On Linux, Nineveh mounts via `udisks2` and communicates over MTP. On Windows, it scans removable drives.
+
+A toast notification appears when a device connects or disconnects.
