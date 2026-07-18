@@ -101,6 +101,11 @@ function CoverCard({
 					<Icon icon="endorsed" size={14} className="text-yellow-400" />
 				</span>
 			)}
+			{(!book.Formats?.length || book.Formats.some((f) => f.Missing)) && (
+				<span className="absolute bottom-1 left-1">
+					<Icon icon="warning-sign" size={12} className="text-yellow-500" />
+				</span>
+			)}
 			{isOnDevice && (
 				<span
 					className="absolute top-1 right-1 w-5 h-5 rounded text-xs font-bold text-zinc-900 flex items-center justify-center"

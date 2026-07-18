@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"nineveh/internal/metadata"
@@ -113,6 +114,9 @@ func (d *DB) getAllFormats() (map[int64][]metadata.BookFile, error) {
 			return nil, fmt.Errorf("scan format: %w", err)
 		}
 		f.Format = metadata.Format(format)
+		if _, err := os.Stat(f.Path); err != nil {
+			f.Missing = true
+		}
 		m[bookID] = append(m[bookID], f)
 	}
 	return m, rows.Err()
@@ -243,9 +247,50 @@ func (d *DB) getFormats(bookID int64) ([]metadata.BookFile, error) {
 			return nil, fmt.Errorf("scan format: %w", err)
 		}
 		f.Format = metadata.Format(format)
+		if _, err := os.Stat(f.Path); err != nil {
+			f.Missing = true
+		}
 		formats = append(formats, f)
 	}
 	return formats, rows.Err()
+}
+
+func (d *DB) UpdateFormatPath(hash, newPath string) error {
+	_, err := d.conn.Exec(`UPDATE formats SET path = ? WHERE hash = ?`, newPath, hash)
+	if err != nil {
+		return fmt.Errorf("update format path: %w", err)
+	}
+	return nil
+}
+
+func (d *DB) DeleteFormat(hash string) error {
+	_, err := d.conn.Exec(`DELETE FROM formats WHERE hash = ?`, hash)
+	if err != nil {
+		return fmt.Errorf("delete format: %w", err)
+	}
+	return nil
+}
+
+type FormatPath struct {
+	Hash string
+	Path string
+}
+
+func (d *DB) ListAllFormatPaths() ([]FormatPath, error) {
+	rows, err := d.conn.Query(`SELECT hash, path FROM formats`)
+	if err != nil {
+		return nil, fmt.Errorf("list format paths: %w", err)
+	}
+	defer rows.Close()
+	var paths []FormatPath
+	for rows.Next() {
+		var fp FormatPath
+		if err := rows.Scan(&fp.Hash, &fp.Path); err != nil {
+			return nil, fmt.Errorf("scan format path: %w", err)
+		}
+		paths = append(paths, fp)
+	}
+	return paths, rows.Err()
 }
 
 func (d *DB) GetAllAuthors() ([]string, error) {

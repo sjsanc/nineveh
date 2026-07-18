@@ -1,4 +1,5 @@
 import {
+	Callout,
 	type Intent,
 	OverlayToaster,
 	Spinner,
@@ -15,7 +16,10 @@ import {
 	ImportFile,
 	ImportFromCalibre,
 	ListDeviceBooks,
+	LocateFormat,
 	OpenBook,
+	RelocateLibrary,
+	RemoveFormat,
 	RemoveFromDevice,
 	ResetLibrary,
 	SelectDirectory,
@@ -76,6 +80,7 @@ function App() {
 	);
 	const [isLoadingDeviceBooks, setIsLoadingDeviceBooks] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [missingCalloutDismissed, setMissingCalloutDismissed] = useState(false);
 	const toasterRef = useRef<Toaster | null>(null);
 	const prevDevicesRef = useRef<DeviceInfo[]>([]);
 
@@ -474,6 +479,54 @@ function App() {
 		}
 	}
 
+	function replaceBook(updated: Book) {
+		setBooks((prev) => prev.map((b) => (b.ID === updated.ID ? updated : b)));
+		setSelectedBook((prev) => (prev?.ID === updated.ID ? updated : prev));
+	}
+
+	async function handleLocateFormat(bookId: number, hash: string) {
+		try {
+			const updated = await LocateFormat(bookId, hash);
+			if (updated) replaceBook(updated);
+		} catch (err) {
+			showToast(`Failed to locate file: ${err}`, "danger");
+			console.error(err);
+		}
+	}
+
+	async function handleRemoveFormat(bookId: number, hash: string) {
+		try {
+			const updated = await RemoveFormat(bookId, hash);
+			if (updated) replaceBook(updated);
+		} catch (err) {
+			showToast(`Failed to remove format: ${err}`, "danger");
+			console.error(err);
+		}
+	}
+
+	async function handleRelocateLibrary() {
+		try {
+			const count = await RelocateLibrary();
+			if (count > 0) {
+				const updated = await GetBooks();
+				setBooks(updated ?? []);
+				setMissingCalloutDismissed(false);
+				showToast(
+					`Relocated ${count} file${count === 1 ? "" : "s"}`,
+					"success",
+				);
+			} else {
+				showToast(
+					"No files could be matched at the selected location",
+					"warning",
+				);
+			}
+		} catch (err) {
+			showToast(`Relocation failed: ${err}`, "danger");
+			console.error(err);
+		}
+	}
+
 	async function handleResetLibrary() {
 		if (
 			!confirm(
@@ -505,6 +558,14 @@ function App() {
 
 	const activeDevice = devices.find((d) => d.ID === activeDeviceID) ?? null;
 
+	const missingCount = books.filter((b) =>
+		b.Formats?.some((f) => f.Missing),
+	).length;
+	const showMissingCallout =
+		!missingCalloutDismissed &&
+		missingCount > 0 &&
+		(missingCount >= 5 || missingCount / Math.max(books.length, 1) >= 0.25);
+
 	return (
 		<DeviceProvider
 			value={{ devices, activeDeviceID, deviceLetterMap, deviceBooks }}
@@ -523,6 +584,10 @@ function App() {
 					activeSection={activeSection}
 					onImport={handleImportFromCalibre}
 					onAdd={handleAddBooks}
+					onReload={async () => {
+						const loaded = await GetBooks().catch(() => null);
+						if (loaded) setBooks(loaded);
+					}}
 					onReset={handleResetLibrary}
 					onSelectDevice={handleSelectDevice}
 					isLoadingDeviceBooks={isLoadingDeviceBooks}
@@ -564,59 +629,97 @@ function App() {
 									)}
 								</div>
 							) : (
-								<div className="flex-1 overflow-hidden flex flex-row">
-									<BookTable
-										data={books}
-										selectedBookId={selectedBook?.ID}
-										selectedBookIds={selectedBookIds}
-										onSelectBook={setSelectedBook}
-										onSelectionChange={handleSelectionChange}
-										onDoubleClickBook={(book) => {
-											if (appPrefs.doubleClickAction === "metadata") {
-												handleEditBook(book, books);
-											} else if (book.Formats?.length) {
-												handleOpenBook(
-													book.ID as number,
-													book.Formats[0].Format,
-												);
-											}
-										}}
-										onSendToDevice={handleSendToDevice}
-										onEditBook={handleEditBook}
-										onFetchMetadata={handleFetchMetadata}
-										onToggleRead={handleToggleRead}
-										onRemoveBooks={handleRemoveBooks}
-										onOpenBook={handleOpenBook}
-										columnWidths={appPrefs.columns?.widths ?? {}}
-										onColumnWidthsChange={(widths) =>
-											updatePrefs(
-												new prefs.Preferences({
-													...appPrefs,
-													columns: { ...appPrefs.columns, widths },
-												}),
-											)
-										}
-										visibleColumns={appPrefs.columns?.visible ?? []}
-										searchQuery={searchQuery}
-										onSearchQueryChange={setSearchQuery}
-									/>
-									{selectedBook && (
-										<BookPanel
-											key={selectedBook.ID}
-											book={selectedBook}
-											width={appPrefs.detailsPaneWidth || 288}
-											onWidthChange={(w) =>
+								<div className="flex-1 overflow-hidden flex flex-col">
+									{showMissingCallout && (
+										<Callout
+											intent="warning"
+											className="mx-3 mt-2 mb-2 text-xs shrink-0 relative border-b border-zinc-700"
+										>
+											<span>
+												{missingCount} book{missingCount === 1 ? "" : "s"} have
+												missing files. If you moved your library,{" "}
+												<button
+													type="button"
+													className="underline cursor-pointer font-medium"
+													onClick={handleRelocateLibrary}
+												>
+													relocate library
+												</button>{" "}
+												to fix all paths at once.
+											</span>
+											<button
+												type="button"
+												className="absolute top-2 right-2 text-zinc-400 hover:text-zinc-100 text-lg leading-none"
+												onClick={() => setMissingCalloutDismissed(true)}
+												aria-label="Dismiss"
+											>
+												×
+											</button>
+										</Callout>
+									)}
+									<div className="flex-1 overflow-hidden flex flex-row">
+										<BookTable
+											data={books}
+											selectedBookId={selectedBook?.ID}
+											selectedBookIds={selectedBookIds}
+											onSelectBook={setSelectedBook}
+											onSelectionChange={handleSelectionChange}
+											onDoubleClickBook={(book) => {
+												if (appPrefs.doubleClickAction === "metadata") {
+													handleEditBook(book, books);
+												} else {
+													const available = book.Formats?.filter(
+														(f) => !f.Missing,
+													);
+													if (available?.length) {
+														handleOpenBook(
+															book.ID as number,
+															available[0].Format,
+														);
+													} else {
+														showToast("No file to open", "warning");
+													}
+												}
+											}}
+											onSendToDevice={handleSendToDevice}
+											onEditBook={handleEditBook}
+											onFetchMetadata={handleFetchMetadata}
+											onToggleRead={handleToggleRead}
+											onRemoveBooks={handleRemoveBooks}
+											onOpenBook={handleOpenBook}
+											columnWidths={appPrefs.columns?.widths ?? {}}
+											onColumnWidthsChange={(widths) =>
 												updatePrefs(
 													new prefs.Preferences({
 														...appPrefs,
-														detailsPaneWidth: w,
+														columns: { ...appPrefs.columns, widths },
 													}),
 												)
 											}
-											onOpenBook={handleOpenBook}
-											onAppendFilter={handleAppendFilter}
+											visibleColumns={appPrefs.columns?.visible ?? []}
+											searchQuery={searchQuery}
+											onSearchQueryChange={setSearchQuery}
 										/>
-									)}
+										{selectedBook && (
+											<BookPanel
+												key={selectedBook.ID}
+												book={selectedBook}
+												width={appPrefs.detailsPaneWidth || 288}
+												onWidthChange={(w) =>
+													updatePrefs(
+														new prefs.Preferences({
+															...appPrefs,
+															detailsPaneWidth: w,
+														}),
+													)
+												}
+												onOpenBook={handleOpenBook}
+												onAppendFilter={handleAppendFilter}
+												onLocateFormat={handleLocateFormat}
+												onRemoveFormat={handleRemoveFormat}
+											/>
+										)}
+									</div>
 								</div>
 							)}
 						</ErrorBoundary>
@@ -655,7 +758,10 @@ function App() {
 					</ErrorBoundary>
 				)}
 				{settingsOpen && (
-					<SettingsDialog onClose={() => setSettingsOpen(false)} />
+					<SettingsDialog
+						onClose={() => setSettingsOpen(false)}
+						onRelocateLibrary={handleRelocateLibrary}
+					/>
 				)}
 			</div>
 		</DeviceProvider>

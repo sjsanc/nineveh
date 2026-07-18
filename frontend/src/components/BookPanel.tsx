@@ -1,3 +1,4 @@
+import { Icon } from "@blueprintjs/core";
 import DOMPurify from "dompurify";
 import { useState } from "react";
 import { GetCoverData } from "../../wailsjs/go/main/App";
@@ -19,6 +20,8 @@ interface Props {
 	onWidthChange: (w: number) => void;
 	onOpenBook?: (bookId: number, format: string) => void;
 	onAppendFilter?: (field: string, value: string) => void;
+	onLocateFormat?: (bookId: number, hash: string) => void;
+	onRemoveFormat?: (bookId: number, hash: string) => void;
 }
 
 export function BookPanel({
@@ -27,6 +30,8 @@ export function BookPanel({
 	onWidthChange,
 	onOpenBook,
 	onAppendFilter,
+	onLocateFormat,
+	onRemoveFormat,
 }: Props) {
 	const [handleDragMouseDown, panelRef] = useResizablePanel(
 		width,
@@ -207,26 +212,62 @@ export function BookPanel({
 			)}
 
 			{/* Formats */}
+			{book.Formats?.length === 0 && (
+				<div className="flex items-center gap-1.5 px-4 py-3 border-b border-zinc-800 shrink-0">
+					<Icon icon="warning-sign" size={12} className="text-yellow-500" />
+					<span className="text-[11px] text-zinc-500">No file formats</span>
+				</div>
+			)}
 			{book.Formats?.length > 0 && (
-				<div className="flex flex-wrap gap-1.5 px-4 py-3 border-b border-zinc-800 shrink-0">
-					{book.Formats.map((f) => (
-						<button
-							type="button"
-							key={f.Format}
-							className="flex items-center gap-1 group cursor-pointer"
-							title="Open in reader"
-							onClick={() => onOpenBook?.(book.ID as number, f.Format)}
-						>
-							<span
-								className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide ${FORMAT_COLORS[f.Format] ?? "bg-zinc-600"} text-white group-hover:opacity-80 transition-opacity`}
+				<div className="flex flex-col gap-1.5 px-4 py-3 border-b border-zinc-800 shrink-0">
+					{book.Formats.map((f) =>
+						f.Missing ? (
+							<div key={f.Format} className="flex items-center gap-1.5">
+								<span
+									className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide ${FORMAT_COLORS[f.Format] ?? "bg-zinc-600"} text-white opacity-40`}
+								>
+									{f.Format}
+								</span>
+								<span className="text-[10px] text-yellow-500 flex items-center gap-0.5">
+									<Icon icon="warning-sign" size={10} />
+									missing
+								</span>
+								<button
+									type="button"
+									className="text-[10px] text-zinc-400 hover:text-zinc-100 underline cursor-pointer ml-1"
+									onClick={() => onLocateFormat?.(book.ID as number, f.Hash)}
+									title="Locate file on disk"
+								>
+									locate
+								</button>
+								<button
+									type="button"
+									className="text-[10px] text-red-500/70 hover:text-red-400 underline cursor-pointer"
+									onClick={() => onRemoveFormat?.(book.ID as number, f.Hash)}
+									title="Remove this format from library"
+								>
+									remove
+								</button>
+							</div>
+						) : (
+							<button
+								type="button"
+								key={f.Format}
+								className="flex items-center gap-1 group cursor-pointer w-fit"
+								title="Open in reader"
+								onClick={() => onOpenBook?.(book.ID as number, f.Format)}
 							>
-								{f.Format}
-							</span>
-							<span className="text-[10px] text-zinc-500">
-								{formatSize(f.Size)}
-							</span>
-						</button>
-					))}
+								<span
+									className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide ${FORMAT_COLORS[f.Format] ?? "bg-zinc-600"} text-white group-hover:opacity-80 transition-opacity`}
+								>
+									{f.Format}
+								</span>
+								<span className="text-[10px] text-zinc-500">
+									{formatSize(f.Size)}
+								</span>
+							</button>
+						),
+					)}
 				</div>
 			)}
 

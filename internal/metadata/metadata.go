@@ -14,7 +14,8 @@ type BookFile struct {
 	Path    string
 	Format  Format
 	Size    int64
-	Hash    string // sha256, for deduplication
+	Hash    string   // sha256, for deduplication
+	Missing bool     // file not found at stored path
 	Title   string   // populated for device files, empty for library files
 	Authors []string // populated for device files, empty for library files
 }

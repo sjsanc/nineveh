@@ -35,11 +35,17 @@ type App struct {
 	prefs     *prefs.Store
 	devicesMu sync.RWMutex
 	devices   []device.Device
-	platform  platform.Platform
+	// ejectedDevices holds IDs of devices explicitly ejected by the user, so
+	// refreshDevices can suppress them even if the OS re-enumerates/remounts
+	// the same USB device before it's physically unplugged. An entry is
+	// cleared once the device stops being detected at all (true unplug), so a
+	// later genuine reconnect isn't suppressed.
+	ejectedDevices map[string]bool
+	platform       platform.Platform
 }
 
 func NewApp() *App {
-	return &App{platform: platform.New()}
+	return &App{platform: platform.New(), ejectedDevices: make(map[string]bool)}
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -321,14 +327,31 @@ func (a *App) refreshDevices() {
 	if err != nil {
 		return
 	}
+
 	a.devicesMu.Lock()
+	// A device that's no longer detected at all has been physically
+	// unplugged; drop its ejected mark so a later reconnect isn't suppressed.
+	detectedIDs := deviceSet(detected)
+	for id := range a.ejectedDevices {
+		if !detectedIDs[id] {
+			delete(a.ejectedDevices, id)
+		}
+	}
+
+	filtered := detected[:0:0]
+	for _, d := range detected {
+		if !a.ejectedDevices[d.ID()] {
+			filtered = append(filtered, d)
+		}
+	}
+
 	prev := deviceSet(a.devices)
-	a.devices = detected
+	a.devices = filtered
 	a.devicesMu.Unlock()
 
-	if !deviceSetsEqual(deviceSet(detected), prev) {
-		slog.Info("device set changed", "count", len(detected))
-		runtime.EventsEmit(a.ctx, "devices:changed", deviceInfos(detected))
+	if !deviceSetsEqual(deviceSet(filtered), prev) {
+		slog.Info("device set changed", "count", len(filtered))
+		runtime.EventsEmit(a.ctx, "devices:changed", deviceInfos(filtered))
 	}
 }
 
@@ -382,6 +405,7 @@ func (a *App) EjectDevice(deviceID string) error {
 	}
 
 	a.devicesMu.Lock()
+	a.ejectedDevices[deviceID] = true
 	for i, d := range a.devices {
 		if d.ID() == deviceID {
 			a.devices = append(a.devices[:i], a.devices[i+1:]...)
@@ -423,6 +447,115 @@ func deviceSetsEqual(a, b map[string]bool) bool {
 		}
 	}
 	return true
+}
+
+// LocateFormat opens a file picker so the user can point Nineveh at the new
+// location of a missing format file. Returns the updated book, or nil if the
+// dialog was cancelled.
+func (a *App) LocateFormat(bookID int64, hash string) (*metadata.Book, error) {
+	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Locate Book File",
+		Filters: []runtime.FileFilter{
+			{DisplayName: "Ebook files", Pattern: "*.epub;*.mobi;*.azw;*.azw3;*.pdf"},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("open dialog: %w", err)
+	}
+	if path == "" {
+		return nil, nil // cancelled
+	}
+	if err := a.db.UpdateFormatPath(hash, path); err != nil {
+		return nil, err
+	}
+	return a.library.GetBook(bookID)
+}
+
+// RemoveFormat deletes a format entry from the database without touching the
+// file on disk. The book record and its other formats are preserved.
+func (a *App) RemoveFormat(bookID int64, hash string) (*metadata.Book, error) {
+	if err := a.db.DeleteFormat(hash); err != nil {
+		return nil, err
+	}
+	return a.library.GetBook(bookID)
+}
+
+// RelocateLibrary opens a directory picker and attempts to remap all missing
+// format paths by replacing their common path prefix with the chosen directory.
+// Returns the number of paths successfully updated.
+func (a *App) RelocateLibrary() (int, error) {
+	newRoot, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Select New Library Location",
+	})
+	if err != nil {
+		return 0, fmt.Errorf("open dialog: %w", err)
+	}
+	if newRoot == "" {
+		return 0, nil // cancelled
+	}
+
+	all, err := a.db.ListAllFormatPaths()
+	if err != nil {
+		return 0, err
+	}
+
+	// Separate missing from present
+	var missing []db.FormatPath
+	for _, fp := range all {
+		if _, err := os.Stat(fp.Path); err != nil {
+			missing = append(missing, fp)
+		}
+	}
+	if len(missing) == 0 {
+		return 0, nil
+	}
+
+	oldRoot := commonDir(missing)
+	var updated int
+	for _, fp := range missing {
+		rel := strings.TrimPrefix(fp.Path, oldRoot)
+		newPath := filepath.Join(newRoot, rel)
+		if _, err := os.Stat(newPath); err != nil {
+			continue // not found at computed path
+		}
+		if err := a.db.UpdateFormatPath(fp.Hash, newPath); err != nil {
+			slog.Warn("relocate: update path failed", "hash", fp.Hash, "err", err)
+			continue
+		}
+		updated++
+	}
+	return updated, nil
+}
+
+// commonDir returns the longest common directory prefix of a set of format paths.
+func commonDir(fps []db.FormatPath) string {
+	if len(fps) == 0 {
+		return ""
+	}
+	parts := strings.Split(filepath.Dir(fps[0].Path), string(filepath.Separator))
+	for _, fp := range fps[1:] {
+		dparts := strings.Split(filepath.Dir(fp.Path), string(filepath.Separator))
+		n := len(parts)
+		if len(dparts) < n {
+			n = len(dparts)
+		}
+		match := 0
+		for i := 0; i < n; i++ {
+			if parts[i] != dparts[i] {
+				break
+			}
+			match = i + 1
+		}
+		parts = parts[:match]
+	}
+	if len(parts) == 0 {
+		return string(filepath.Separator)
+	}
+	result := filepath.Join(parts...)
+	if !strings.HasPrefix(result, string(filepath.Separator)) {
+		result = string(filepath.Separator) + result
+	}
+	return result
 }
 
 func (a *App) OpenBook(bookID int64, format string) error {

@@ -6,6 +6,7 @@ interface Props {
 	activeSection: "library" | "devices";
 	onImport: () => void;
 	onAdd: () => void;
+	onReload: () => void;
 	onReset: () => void;
 	onSelectDevice: (id: string) => void;
 	isLoadingDeviceBooks: boolean;
@@ -15,6 +16,7 @@ export function SubSidebar({
 	activeSection,
 	onImport,
 	onAdd,
+	onReload,
 	onReset,
 	onSelectDevice,
 	isLoadingDeviceBooks,
@@ -39,6 +41,14 @@ export function SubSidebar({
 						className="w-9 h-9 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
 					>
 						<Icon icon="plus" size={18} />
+					</button>
+					<button
+						type="button"
+						onClick={onReload}
+						title="Reload Library"
+						className="w-9 h-9 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+					>
+						<Icon icon="refresh" size={16} />
 					</button>
 					<div className="flex-1" />
 					<button

@@ -67,6 +67,7 @@ export namespace metadata {
 	    Format: string;
 	    Size: number;
 	    Hash: string;
+	    Missing: boolean;
 	    Title: string;
 	    Authors: string[];
 	
@@ -80,6 +81,7 @@ export namespace metadata {
 	        this.Format = source["Format"];
 	        this.Size = source["Size"];
 	        this.Hash = source["Hash"];
+	        this.Missing = source["Missing"];
 	        this.Title = source["Title"];
 	        this.Authors = source["Authors"];
 	    }

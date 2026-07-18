@@ -74,8 +74,20 @@ export function ListDeviceBooks(arg1) {
   return window['go']['main']['App']['ListDeviceBooks'](arg1);
 }
 
+export function LocateFormat(arg1, arg2) {
+  return window['go']['main']['App']['LocateFormat'](arg1, arg2);
+}
+
 export function OpenBook(arg1, arg2) {
   return window['go']['main']['App']['OpenBook'](arg1, arg2);
+}
+
+export function RelocateLibrary() {
+  return window['go']['main']['App']['RelocateLibrary']();
+}
+
+export function RemoveFormat(arg1, arg2) {
+  return window['go']['main']['App']['RemoveFormat'](arg1, arg2);
 }
 
 export function RemoveFromDevice(arg1, arg2) {

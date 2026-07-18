@@ -119,6 +119,23 @@ const COLUMNS: ColumnDef<Book>[] = [
 		accessorKey: "Title",
 		size: 280,
 		minSize: 100,
+		cell: ({ getValue, row }) => {
+			const formats = row.original.Formats;
+			const hasNoFiles = !formats?.length;
+			const hasMissing = !hasNoFiles && formats.some((f) => f.Missing);
+			return (
+				<span className="flex items-center gap-1 min-w-0">
+					{(hasNoFiles || hasMissing) && (
+						<Icon
+							icon="warning-sign"
+							size={12}
+							className="text-yellow-500 shrink-0"
+						/>
+					)}
+					<span className="truncate">{getValue<string>()}</span>
+				</span>
+			);
+		},
 	},
 	{
 		id: "authors",

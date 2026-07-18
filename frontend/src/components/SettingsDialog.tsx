@@ -1,4 +1,4 @@
-import { Callout, InputGroup, Switch } from "@blueprintjs/core";
+import { Button, Callout, InputGroup, Switch } from "@blueprintjs/core";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { prefs } from "../../wailsjs/go/models";
@@ -20,9 +20,10 @@ const CONFIGURABLE_COLUMNS = [
 
 interface Props {
 	onClose: () => void;
+	onRelocateLibrary?: () => void;
 }
 
-export function SettingsDialog({ onClose }: Props) {
+export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 	const { prefs: appPrefs, updatePrefs } = usePrefs();
 
 	useEffect(() => {
@@ -144,6 +145,26 @@ export function SettingsDialog({ onClose }: Props) {
 								}
 								className="mb-0"
 							/>
+						</div>
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm font-medium text-zinc-200">
+									Relocate library
+								</p>
+								<p className="text-xs text-zinc-500">
+									If you moved your book files, point Nineveh at the new
+									location.
+								</p>
+							</div>
+							<Button
+								small
+								onClick={() => {
+									onClose();
+									onRelocateLibrary?.();
+								}}
+							>
+								Relocate…
+							</Button>
 						</div>
 					</section>
 
