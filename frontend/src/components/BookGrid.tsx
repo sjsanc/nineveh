@@ -66,7 +66,7 @@ function CoverCard({
 			className={`block w-full aspect-[2/3] rounded overflow-hidden cursor-pointer select-none relative ${
 				isSelected
 					? "ring-2 ring-blue-500"
-					: "ring-1 ring-zinc-700/50 hover:ring-zinc-600"
+					: "ring-1 ring-zinc-300 dark:ring-zinc-700/50 hover:ring-zinc-400 dark:hover:ring-zinc-600"
 			}`}
 			onClick={(e) => onClick(e, book, index)}
 			onDoubleClick={() => onDoubleClick(book)}
@@ -75,7 +75,7 @@ function CoverCard({
 				if (e.key === "Enter") onDoubleClick(book);
 			}}
 		>
-			<div className="w-full h-full bg-zinc-800">
+			<div className="w-full h-full bg-zinc-200 dark:bg-zinc-800">
 				{coverSrc ? (
 					<img
 						src={coverSrc}
@@ -85,7 +85,7 @@ function CoverCard({
 					/>
 				) : (
 					<div className="w-full h-full flex flex-col items-center justify-center gap-1.5 p-3 text-center">
-						<p className="text-xs font-medium text-zinc-300 line-clamp-4 leading-snug">
+						<p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 line-clamp-4 leading-snug">
 							{book.Title}
 						</p>
 						{book.Authors.length > 0 && (
@@ -108,7 +108,7 @@ function CoverCard({
 			)}
 			{isOnDevice && (
 				<span
-					className="absolute top-1 right-1 w-5 h-5 rounded text-xs font-bold text-zinc-900 flex items-center justify-center"
+					className="absolute top-1 right-1 w-5 h-5 rounded text-xs font-bold text-zinc-100 dark:text-zinc-900 flex items-center justify-center"
 					style={{ backgroundColor: devColor }}
 				>
 					{deviceLetter}

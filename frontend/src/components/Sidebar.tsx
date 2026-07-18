@@ -20,15 +20,15 @@ export function Sidebar({
 	onSettingsOpen,
 }: Props) {
 	return (
-		<div className="w-12 shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col items-center py-2 gap-2">
+		<div className="w-12 shrink-0 bg-zinc-100 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col items-center py-2 gap-2">
 			<button
 				type="button"
 				onClick={onSelectLibrary}
 				title="Library"
 				className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
 					isLibraryActive
-						? "bg-zinc-700 text-zinc-100"
-						: "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800"
+						? "bg-zinc-300 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+						: "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800"
 				}`}
 			>
 				<Icon icon="book" size={18} />
@@ -40,10 +40,10 @@ export function Sidebar({
 				title={hasDevices ? "Devices" : "No devices connected"}
 				className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
 					!hasDevices
-						? "text-zinc-700 cursor-not-allowed"
+						? "text-zinc-300 dark:text-zinc-700 cursor-not-allowed"
 						: isDevicesActive
-							? "bg-zinc-700 text-zinc-100"
-							: "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800"
+							? "bg-zinc-300 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+							: "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800"
 				}`}
 			>
 				<Icon icon="desktop" size={18} />
@@ -53,7 +53,7 @@ export function Sidebar({
 				type="button"
 				onClick={onRescan}
 				title="Rescan for devices"
-				className="w-9 h-9 flex items-center justify-center rounded text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800 transition-colors"
+				className="w-9 h-9 flex items-center justify-center rounded text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
 			>
 				<Icon icon="refresh" size={16} />
 			</button>
@@ -61,7 +61,7 @@ export function Sidebar({
 				type="button"
 				onClick={onSettingsOpen}
 				title="Settings"
-				className="w-9 h-9 flex items-center justify-center rounded text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800 transition-colors"
+				className="w-9 h-9 flex items-center justify-center rounded text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
 			>
 				<Icon icon="cog" size={16} />
 			</button>

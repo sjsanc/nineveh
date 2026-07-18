@@ -169,7 +169,7 @@ export function BookEditForm({
 		<form onSubmit={handleSubmit(onSubmit)} className="p-6">
 			<div className="flex gap-6">
 				<div className="w-40 shrink-0 flex flex-col items-center">
-					<div className="w-40 aspect-[2/3] rounded bg-zinc-800 overflow-hidden flex items-center justify-center">
+					<div className="w-40 aspect-[2/3] rounded bg-zinc-200 dark:bg-zinc-800 overflow-hidden flex items-center justify-center">
 						{coverSrc ? (
 							<img
 								src={coverSrc}
@@ -182,7 +182,7 @@ export function BookEditForm({
 								height="32"
 								viewBox="0 0 24 24"
 								fill="currentColor"
-								className="text-zinc-600"
+								className="text-zinc-400 dark:text-zinc-600"
 								aria-hidden="true"
 							>
 								<path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm0 18H6V4h2v8l2.5-1.5L13 12V4h5v16z" />
@@ -194,7 +194,7 @@ export function BookEditForm({
 					<div>
 						<label
 							htmlFor="form-title"
-							className="block text-sm font-medium text-zinc-300 mb-2"
+							className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
 						>
 							Title
 						</label>
@@ -206,7 +206,7 @@ export function BookEditForm({
 									{...field}
 									id="form-title"
 									type="text"
-									className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+									className="w-full bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
 									placeholder="Book title"
 								/>
 							)}
@@ -219,7 +219,7 @@ export function BookEditForm({
 					</div>
 
 					<div>
-						<div className="block text-sm font-medium text-zinc-300 mb-2">
+						<div className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
 							Authors
 						</div>
 						<EditableMultiSelect
@@ -282,7 +282,6 @@ export function BookEditForm({
 											/>
 										}
 										inputProps={{ placeholder: "Series name" }}
-										popoverProps={{ popoverClassName: "bp6-dark" }}
 									/>
 								)}
 							/>
@@ -303,7 +302,7 @@ export function BookEditForm({
 										id="form-series-index"
 										type="number"
 										min="0"
-										className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+										className="w-full bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
 									/>
 								)}
 							/>
@@ -314,7 +313,7 @@ export function BookEditForm({
 						<div>
 							<label
 								htmlFor="form-publisher"
-								className="block text-sm font-medium text-zinc-300 mb-2"
+								className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
 							>
 								Publisher
 							</label>
@@ -326,7 +325,7 @@ export function BookEditForm({
 										{...field}
 										id="form-publisher"
 										type="text"
-										className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+										className="w-full bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
 										placeholder="Publisher"
 									/>
 								)}
@@ -335,7 +334,7 @@ export function BookEditForm({
 						<div>
 							<label
 								htmlFor="form-language"
-								className="block text-sm font-medium text-zinc-300 mb-2"
+								className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
 							>
 								Language
 							</label>
@@ -347,7 +346,7 @@ export function BookEditForm({
 										{...field}
 										id="form-language"
 										type="text"
-										className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+										className="w-full bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
 										placeholder="en, fr, etc."
 									/>
 								)}
@@ -357,7 +356,7 @@ export function BookEditForm({
 
 					<div className="grid grid-cols-2 gap-4">
 						<div>
-							<div className="block text-sm font-medium text-zinc-300 mb-2">
+							<div className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
 								Rating
 							</div>
 							<Controller
@@ -377,7 +376,7 @@ export function BookEditForm({
 						<div>
 							<label
 								htmlFor="form-date-published"
-								className="block text-sm font-medium text-zinc-300 mb-2"
+								className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
 							>
 								Date Published
 							</label>
@@ -389,7 +388,7 @@ export function BookEditForm({
 										{...field}
 										id="form-date-published"
 										type="date"
-										className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-600"
+										className="w-full bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded px-3 py-2 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-600"
 									/>
 								)}
 							/>
@@ -406,20 +405,20 @@ export function BookEditForm({
 									id="is-read"
 									checked={field.value}
 									onChange={(e) => field.onChange(e.target.checked)}
-									className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 accent-blue-600"
+									className="w-4 h-4 rounded border-zinc-400 dark:border-zinc-600 bg-zinc-200 dark:bg-zinc-800 accent-blue-600"
 								/>
 							)}
 						/>
 						<label
 							htmlFor="is-read"
-							className="text-sm font-medium text-zinc-300 cursor-pointer"
+							className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer"
 						>
 							Marked as read
 						</label>
 					</div>
 
 					<div>
-						<div className="block text-sm font-medium text-zinc-300 mb-2">
+						<div className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
 							Tags
 						</div>
 						<EditableMultiSelect
@@ -433,7 +432,7 @@ export function BookEditForm({
 					<div>
 						<label
 							htmlFor="form-description"
-							className="block text-sm font-medium text-zinc-300 mb-2"
+							className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
 						>
 							Description
 						</label>
@@ -448,13 +447,13 @@ export function BookEditForm({
 				</div>
 			</div>
 
-			<div className="flex justify-between pt-4 mt-4 border-t border-zinc-700">
+			<div className="flex justify-between pt-4 mt-4 border-t border-zinc-300 dark:border-zinc-700">
 				<div className="flex gap-2">
 					<button
 						type="button"
 						disabled={!canGoPrev}
 						onClick={() => handleNav(-1)}
-						className="px-3 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 disabled:opacity-40 transition-colors"
+						className="px-3 py-2 rounded bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 transition-colors"
 					>
 						← Prev
 					</button>
@@ -462,7 +461,7 @@ export function BookEditForm({
 						type="button"
 						disabled={!canGoNext}
 						onClick={() => handleNav(1)}
-						className="px-3 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 disabled:opacity-40 transition-colors"
+						className="px-3 py-2 rounded bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 transition-colors"
 					>
 						Next →
 					</button>
@@ -471,7 +470,7 @@ export function BookEditForm({
 					<button
 						type="button"
 						onClick={onClose}
-						className="px-4 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+						className="px-4 py-2 rounded bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors"
 					>
 						Cancel
 					</button>

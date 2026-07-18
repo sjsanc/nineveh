@@ -1,4 +1,10 @@
-import { Button, Callout, InputGroup, Switch } from "@blueprintjs/core";
+import {
+	Button,
+	Callout,
+	HTMLSelect,
+	InputGroup,
+	Switch,
+} from "@blueprintjs/core";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { prefs } from "../../wailsjs/go/models";
@@ -65,6 +71,10 @@ export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 		);
 	}
 
+	function setTheme(theme: "system" | "light" | "dark") {
+		updatePrefs(new prefs.Preferences({ ...appPrefs, theme }));
+	}
+
 	function setColumnVisible(colId: string, isVisible: boolean) {
 		const currentVisible = appPrefs.columns?.visible ?? [];
 		const allIds = CONFIGURABLE_COLUMNS.map((c) => c.id);
@@ -106,14 +116,16 @@ export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 				if (e.key === "Escape") onClose();
 			}}
 		>
-			<div className="bg-zinc-900 rounded-lg shadow-xl w-full max-w-lg border border-zinc-800 flex flex-col">
+			<div className="bg-zinc-100 dark:bg-zinc-900 rounded-lg shadow-xl w-full max-w-lg border border-zinc-200 dark:border-zinc-800 flex flex-col">
 				{/* Header */}
-				<div className="sticky top-0 bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex justify-between items-center">
-					<h2 className="text-lg font-semibold text-zinc-100">Settings</h2>
+				<div className="sticky top-0 bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex justify-between items-center">
+					<h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+						Settings
+					</h2>
 					<button
 						type="button"
 						onMouseDown={onClose}
-						className="text-zinc-400 hover:text-zinc-100 text-2xl leading-none"
+						className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 text-2xl leading-none"
 					>
 						×
 					</button>
@@ -122,12 +134,38 @@ export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 				{/* Body */}
 				<div className="p-6 space-y-6">
 					<section className="space-y-4">
-						<h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
+						<h3 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+							Appearance
+						</h3>
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+									Theme
+								</p>
+								<p className="text-xs text-zinc-500">
+									"System" follows your OS light/dark setting.
+								</p>
+							</div>
+							<HTMLSelect
+								value={appPrefs.theme ?? "system"}
+								onChange={(e) =>
+									setTheme(e.target.value as "system" | "light" | "dark")
+								}
+							>
+								<option value="system">System</option>
+								<option value="light">Light</option>
+								<option value="dark">Dark</option>
+							</HTMLSelect>
+						</div>
+					</section>
+
+					<section className="space-y-4">
+						<h3 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
 							Library
 						</h3>
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm font-medium text-zinc-200">
+								<p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
 									Double-click opens metadata editor
 								</p>
 								<p className="text-xs text-zinc-500">
@@ -148,7 +186,7 @@ export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 						</div>
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm font-medium text-zinc-200">
+								<p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
 									Relocate library
 								</p>
 								<p className="text-xs text-zinc-500">
@@ -169,7 +207,7 @@ export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 					</section>
 
 					<section className="space-y-4">
-						<h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
+						<h3 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
 							Columns
 						</h3>
 						<p className="text-xs text-zinc-500">
@@ -178,7 +216,9 @@ export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 						<div className="grid grid-cols-2 gap-x-4 gap-y-1">
 							{CONFIGURABLE_COLUMNS.map((col) => (
 								<div key={col.id} className="flex items-center justify-between">
-									<span className="text-sm text-zinc-200">{col.label}</span>
+									<span className="text-sm text-zinc-800 dark:text-zinc-200">
+										{col.label}
+									</span>
 									<Switch
 										checked={isColumnVisible(col.id)}
 										onChange={(e) =>
@@ -195,14 +235,14 @@ export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 					</section>
 
 					<section className="space-y-4">
-						<h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
+						<h3 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
 							Metadata Sources
 						</h3>
 
 						{/* Open Library */}
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm font-medium text-zinc-200">
+								<p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
 									Open Library
 								</p>
 							</div>
@@ -221,7 +261,7 @@ export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 						<div className="space-y-2">
 							<div className="flex items-center justify-between">
 								<div>
-									<p className="text-sm font-medium text-zinc-200">
+									<p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
 										Google Books
 									</p>
 								</div>
@@ -264,7 +304,7 @@ export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 					</section>
 
 					<section className="space-y-4">
-						<h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
+						<h3 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
 							Reader Applications
 						</h3>
 						<p className="text-xs text-zinc-500">
@@ -291,11 +331,11 @@ export function SettingsDialog({ onClose, onRelocateLibrary }: Props) {
 				</div>
 
 				{/* Footer */}
-				<div className="border-t border-zinc-800 px-6 py-4 flex justify-end">
+				<div className="border-t border-zinc-200 dark:border-zinc-800 px-6 py-4 flex justify-end">
 					<button
 						type="button"
 						onMouseDown={onClose}
-						className="px-4 py-2 text-sm text-zinc-300 hover:text-zinc-100 rounded border border-zinc-700 hover:border-zinc-500 transition-colors"
+						className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 rounded border border-zinc-300 dark:border-zinc-700 hover:border-zinc-500 transition-colors"
 					>
 						Close
 					</button>

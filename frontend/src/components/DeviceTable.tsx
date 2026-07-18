@@ -104,7 +104,9 @@ function makeColumns(index: Map<string, Book>): ColumnDef<BookFile>[] {
 			size: 90,
 			minSize: 70,
 			cell: ({ getValue }) => (
-				<span className="text-zinc-400">{formatSize(getValue<number>())}</span>
+				<span className="text-zinc-600 dark:text-zinc-400">
+					{formatSize(getValue<number>())}
+				</span>
 			),
 		},
 	];
@@ -199,12 +201,12 @@ export function DeviceTable({
 	return (
 		<div className="flex flex-col h-full w-full overflow-hidden">
 			{device && (
-				<div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-8 bg-zinc-900/50 shrink-0">
+				<div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-8 bg-zinc-100 dark:bg-zinc-900/50 shrink-0">
 					<div className="flex flex-col gap-0.5">
 						<span className="text-[10px] text-zinc-500 uppercase tracking-wider">
 							Device
 						</span>
-						<span className="text-sm text-zinc-200 font-medium">
+						<span className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">
 							{device.Name}
 						</span>
 					</div>
@@ -212,7 +214,7 @@ export function DeviceTable({
 						<span className="text-[10px] text-zinc-500 uppercase tracking-wider">
 							Books
 						</span>
-						<span className="text-sm text-zinc-200 font-medium">
+						<span className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">
 							{isLoading ? "—" : data.length}
 						</span>
 					</div>
@@ -221,7 +223,7 @@ export function DeviceTable({
 							<span className="text-[10px] text-zinc-500 uppercase tracking-wider">
 								Free Space
 							</span>
-							<span className="text-sm text-zinc-200 font-medium">
+							<span className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">
 								{formatSize(device.FreeSpace)}
 							</span>
 						</div>
@@ -231,7 +233,7 @@ export function DeviceTable({
 							type="button"
 							onClick={onEject}
 							title="Eject device"
-							className="ml-auto w-8 h-8 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+							className="ml-auto w-8 h-8 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
 						>
 							<Icon icon="eject" size={16} />
 						</button>
@@ -246,16 +248,16 @@ export function DeviceTable({
 				className="overflow-x-hidden overflow-y-auto flex-1 w-full outline-none"
 			>
 				{isLoading ? (
-					<div className="flex items-center justify-center h-full text-zinc-600 text-sm">
+					<div className="flex items-center justify-center h-full text-zinc-400 dark:text-zinc-600 text-sm">
 						Loading books…
 					</div>
 				) : data.length === 0 ? (
-					<div className="flex items-center justify-center h-full text-zinc-600 text-sm">
+					<div className="flex items-center justify-center h-full text-zinc-400 dark:text-zinc-600 text-sm">
 						No books found on device
 					</div>
 				) : (
 					<table
-						className="text-sm text-zinc-200"
+						className="text-sm text-zinc-800 dark:text-zinc-200"
 						style={{
 							width: containerWidth || "100%",
 							tableLayout: "fixed",
@@ -281,12 +283,12 @@ export function DeviceTable({
 										onContextMenu={(e) =>
 											handleContextMenu(e, path, virtualRow.index)
 										}
-										className={`border-b border-zinc-800/60 cursor-pointer transition-colors select-none ${
+										className={`border-b border-zinc-200 dark:border-zinc-800/60 cursor-pointer transition-colors select-none ${
 											isSelected
-												? "bg-zinc-700/60"
+												? "bg-zinc-300 dark:bg-zinc-700/60"
 												: virtualRow.index % 2 !== 0
-													? "bg-zinc-900/30 hover:bg-zinc-800/60"
-													: "hover:bg-zinc-800/60"
+													? "bg-zinc-100 dark:bg-zinc-900/30 hover:bg-zinc-200 dark:hover:bg-zinc-800/60"
+													: "bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-200 dark:hover:bg-zinc-800/60"
 										}`}
 									>
 										{row.getVisibleCells().map((cell) => (
@@ -327,7 +329,6 @@ export function DeviceTable({
 					ReactDOM.createPortal(
 						<div
 							id="device-ctx-menu"
-							className="bp6-dark"
 							style={{
 								position: "fixed",
 								left: ctxMenu.x,
@@ -335,7 +336,7 @@ export function DeviceTable({
 								zIndex: 1000,
 							}}
 						>
-							<Menu>
+							<Menu className="shadow-lg">
 								<MenuItem
 									disabled
 									text={`${selectionCount} file${selectionCount === 1 ? "" : "s"} selected`}

@@ -65,7 +65,7 @@ export function Rating({
 										}
 									}
 						}
-						className={`leading-none select-none ${filled ? "text-amber-400" : "text-zinc-600"} ${
+						className={`leading-none select-none ${filled ? "text-amber-400" : "text-zinc-400 dark:text-zinc-600"} ${
 							readOnly
 								? ""
 								: "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-sm"

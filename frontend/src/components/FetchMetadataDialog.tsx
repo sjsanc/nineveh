@@ -217,16 +217,16 @@ export function FetchMetadataDialog({
 				if (e.key === "Escape") onClose();
 			}}
 		>
-			<div className="bg-zinc-900 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-zinc-800">
+			<div className="bg-zinc-100 dark:bg-zinc-900 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-zinc-200 dark:border-zinc-800">
 				{/* Header */}
-				<div className="sticky top-0 bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex justify-between items-center z-10">
-					<h2 className="text-lg font-semibold text-zinc-100">
+				<div className="sticky top-0 bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex justify-between items-center z-10">
+					<h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
 						Fetch Metadata
 					</h2>
 					<button
 						type="button"
 						onMouseDown={onClose}
-						className="text-zinc-400 hover:text-zinc-100 text-2xl leading-none"
+						className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 text-2xl leading-none"
 					>
 						×
 					</button>
@@ -238,7 +238,7 @@ export function FetchMetadataDialog({
 					{candidates === null && !error && (
 						<div className="flex flex-col items-center justify-center py-16 gap-4">
 							<Spinner size={40} />
-							<p className="text-zinc-400 text-sm">
+							<p className="text-zinc-600 dark:text-zinc-400 text-sm">
 								Searching metadata sources…
 							</p>
 						</div>
@@ -266,9 +266,10 @@ export function FetchMetadataDialog({
 							{/* Candidate selector */}
 							{(candidates?.length ?? 0) > 1 && (
 								<div className="flex items-center gap-3">
-									<span className="text-zinc-400 text-sm">Source:</span>
+									<span className="text-zinc-600 dark:text-zinc-400 text-sm">
+										Source:
+									</span>
 									<HTMLSelect
-										className="bp6-dark"
 										value={selectedIdx}
 										onChange={(e) =>
 											handleCandidateChange(Number(e.target.value))
@@ -284,7 +285,7 @@ export function FetchMetadataDialog({
 							)}
 
 							{candidates?.length === 1 && (
-								<p className="text-zinc-400 text-sm">
+								<p className="text-zinc-600 dark:text-zinc-400 text-sm">
 									Source: {candidate.Source}
 								</p>
 							)}
@@ -296,10 +297,10 @@ export function FetchMetadataDialog({
 							)}
 
 							{/* Comparison table */}
-							<div className="rounded-md border border-zinc-800 overflow-hidden">
+							<div className="rounded-md border border-zinc-200 dark:border-zinc-800 overflow-hidden">
 								<table className="w-full text-sm">
 									<thead>
-										<tr className="bg-zinc-800 text-zinc-400 text-left">
+										<tr className="bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-left">
 											<th className="px-3 py-2 w-28">Field</th>
 											<th className="px-3 py-2">Current</th>
 											<th className="px-3 py-2">Fetched</th>
@@ -317,12 +318,12 @@ export function FetchMetadataDialog({
 											return (
 												<tr
 													key={key}
-													className={`border-t border-zinc-800 ${differs && acceptedFields.has(key) ? "bg-blue-500/10" : ""}`}
+													className={`border-t border-zinc-200 dark:border-zinc-800 ${differs && acceptedFields.has(key) ? "bg-blue-500/10" : ""}`}
 												>
-													<td className="px-3 py-2 text-zinc-400 font-medium whitespace-nowrap">
+													<td className="px-3 py-2 text-zinc-600 dark:text-zinc-400 font-medium whitespace-nowrap">
 														{label}
 													</td>
-													<td className="px-3 py-2 text-zinc-300 max-w-xs">
+													<td className="px-3 py-2 text-zinc-700 dark:text-zinc-300 max-w-xs">
 														{isCoverRow && book.CoverPath ? (
 															<img
 																src={`/covers/${book.CoverPath.replace("/covers/", "")}`}
@@ -336,14 +337,16 @@ export function FetchMetadataDialog({
 														) : (
 															<span
 																className={
-																	currentVal ? "" : "text-zinc-600 italic"
+																	currentVal
+																		? ""
+																		: "text-zinc-400 dark:text-zinc-600 italic"
 																}
 															>
 																{currentVal || "empty"}
 															</span>
 														)}
 													</td>
-													<td className="px-3 py-2 text-zinc-200 max-w-xs">
+													<td className="px-3 py-2 text-zinc-800 dark:text-zinc-200 max-w-xs">
 														{isCoverRow && candidate.CoverURL ? (
 															<img
 																src={candidate.CoverURL}
@@ -361,7 +364,7 @@ export function FetchMetadataDialog({
 																		? differs
 																			? "text-blue-300"
 																			: ""
-																		: "text-zinc-600 italic"
+																		: "text-zinc-400 dark:text-zinc-600 italic"
 																}
 															>
 																{fetchedVal || "empty"}
@@ -389,11 +392,11 @@ export function FetchMetadataDialog({
 
 				{/* Footer */}
 				{candidate && (
-					<div className="border-t border-zinc-800 px-6 py-4 flex justify-end gap-3">
+					<div className="border-t border-zinc-200 dark:border-zinc-800 px-6 py-4 flex justify-end gap-3">
 						<button
 							type="button"
 							onMouseDown={onClose}
-							className="px-4 py-2 text-sm text-zinc-300 hover:text-zinc-100 rounded border border-zinc-700 hover:border-zinc-500 transition-colors"
+							className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 rounded border border-zinc-300 dark:border-zinc-700 hover:border-zinc-500 transition-colors"
 						>
 							Cancel
 						</button>

@@ -189,6 +189,7 @@ export namespace prefs {
 	    fetchSources: FetchSourcePrefs;
 	    readerApps: Record<string, string>;
 	    doubleClickAction: string;
+	    theme: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Preferences(source);
@@ -203,6 +204,7 @@ export namespace prefs {
 	        this.fetchSources = this.convertValues(source["fetchSources"], FetchSourcePrefs);
 	        this.readerApps = source["readerApps"];
 	        this.doubleClickAction = source["doubleClickAction"];
+	        this.theme = source["theme"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

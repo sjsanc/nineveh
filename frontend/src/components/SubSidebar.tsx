@@ -23,14 +23,14 @@ export function SubSidebar({
 }: Props) {
 	const { devices, activeDeviceID, deviceLetterMap } = useDevice();
 	return (
-		<div className="w-12 shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col items-center py-2 gap-2">
+		<div className="w-12 shrink-0 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col items-center py-2 gap-2">
 			{activeSection === "library" && (
 				<>
 					<button
 						type="button"
 						onClick={onImport}
 						title="Import from Calibre"
-						className="w-9 h-9 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+						className="w-9 h-9 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
 					>
 						<Icon icon="import" size={18} />
 					</button>
@@ -38,7 +38,7 @@ export function SubSidebar({
 						type="button"
 						onClick={onAdd}
 						title="Add Books"
-						className="w-9 h-9 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+						className="w-9 h-9 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
 					>
 						<Icon icon="plus" size={18} />
 					</button>
@@ -46,7 +46,7 @@ export function SubSidebar({
 						type="button"
 						onClick={onReload}
 						title="Reload Library"
-						className="w-9 h-9 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+						className="w-9 h-9 flex items-center justify-center rounded text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
 					>
 						<Icon icon="refresh" size={16} />
 					</button>
@@ -55,7 +55,7 @@ export function SubSidebar({
 						type="button"
 						onClick={onReset}
 						title="Reset Library"
-						className="w-9 h-9 flex items-center justify-center rounded text-zinc-700 hover:text-red-500 hover:bg-red-950/30 transition-colors"
+						className="w-9 h-9 flex items-center justify-center rounded text-zinc-300 dark:text-zinc-700 hover:text-red-500 hover:bg-red-950/30 transition-colors"
 					>
 						<Icon icon="trash" size={16} />
 					</button>
@@ -82,7 +82,7 @@ export function SubSidebar({
 							}`}
 						>
 							<div
-								className="w-7 h-7 flex items-center justify-center rounded font-bold text-sm text-zinc-900"
+								className="w-7 h-7 flex items-center justify-center rounded font-bold text-sm text-zinc-100 dark:text-zinc-900"
 								style={{ backgroundColor: deviceColor(letter) }}
 							>
 								{letter}

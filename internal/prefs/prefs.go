@@ -27,6 +27,7 @@ type Preferences struct {
 	FetchSources      FetchSourcePrefs  `json:"fetchSources"`
 	ReaderApps        map[string]string `json:"readerApps"`
 	DoubleClickAction string            `json:"doubleClickAction"`
+	Theme             string            `json:"theme"`
 }
 
 var defaults = Preferences{
@@ -41,6 +42,7 @@ var defaults = Preferences{
 	},
 	ReaderApps:        map[string]string{},
 	DoubleClickAction: "open",
+	Theme:             "system",
 }
 
 type Store struct {

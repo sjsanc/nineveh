@@ -112,7 +112,7 @@ export function EditBookDialog({
 			role="dialog"
 			aria-modal="true"
 			aria-label="Edit book metadata"
-			className="bp6-dark fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+			className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
 			onMouseDown={(e) => {
 				if (e.target === e.currentTarget) handleClose();
 			}}
@@ -120,15 +120,15 @@ export function EditBookDialog({
 				if (e.key === "Escape") handleClose();
 			}}
 		>
-			<div className="bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-800">
-				<div className="sticky top-0 bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex justify-between items-center z-10">
-					<h2 className="text-lg font-semibold text-zinc-100">
+			<div className="bg-zinc-100 dark:bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800">
+				<div className="sticky top-0 bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex justify-between items-center z-10">
+					<h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
 						Edit Book Metadata{positionLabel}
 					</h2>
 					<button
 						type="button"
 						onMouseDown={handleClose}
-						className="text-zinc-400 hover:text-zinc-100 text-2xl leading-none"
+						className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 text-2xl leading-none"
 					>
 						×
 					</button>

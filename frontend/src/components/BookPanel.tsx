@@ -43,17 +43,17 @@ export function BookPanel({
 	return (
 		<div
 			ref={panelRef}
-			className="shrink-0 h-full border-l border-zinc-800 bg-zinc-950 overflow-y-auto relative"
+			className="shrink-0 h-full border-l border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 overflow-y-auto relative"
 			style={{ width }}
 		>
 			<div
 				aria-hidden="true"
-				className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-zinc-600 active:bg-zinc-500 transition-colors z-10"
+				className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-zinc-400 dark:hover:bg-zinc-600 active:bg-zinc-500 transition-colors z-10"
 				onMouseDown={handleDragMouseDown}
 			/>
 			{/* Cover */}
-			<div className="border-b border-zinc-800 shrink-0">
-				<div className="w-full aspect-[2/3] bg-zinc-800 overflow-hidden flex items-center justify-center">
+			<div className="border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+				<div className="w-full aspect-[2/3] bg-zinc-200 dark:bg-zinc-800 overflow-hidden flex items-center justify-center">
 					{coverSrc ? (
 						<button
 							type="button"
@@ -70,7 +70,7 @@ export function BookPanel({
 							/>
 						</button>
 					) : (
-						<div className="flex flex-col items-center justify-center text-zinc-600 w-full h-full">
+						<div className="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-600 w-full h-full">
 							<svg
 								width="24"
 								height="24"
@@ -86,19 +86,19 @@ export function BookPanel({
 			</div>
 
 			{/* Title / authors / series / rating */}
-			<div className="flex flex-col gap-1 px-4 py-3 border-b border-zinc-800 shrink-0">
-				<h2 className="text-sm font-semibold text-zinc-100 leading-snug">
+			<div className="flex flex-col gap-1 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+				<h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
 					{book.Title}
 				</h2>
 				{book.Authors?.length > 0 && (
-					<p className="text-xs text-zinc-400">
+					<p className="text-xs text-zinc-600 dark:text-zinc-400">
 						{book.Authors.map((a, i) => (
 							<span key={a}>
 								{i > 0 && ", "}
 								{onAppendFilter ? (
 									<button
 										type="button"
-										className="cursor-pointer hover:text-zinc-200 hover:underline"
+										className="cursor-pointer hover:text-zinc-800 dark:hover:text-zinc-200 hover:underline"
 										onClick={() => onAppendFilter("author", a)}
 										onKeyDown={(e) => {
 											if (e.key === "Enter" || e.key === " ")
@@ -119,7 +119,7 @@ export function BookPanel({
 						{onAppendFilter ? (
 							<button
 								type="button"
-								className="cursor-pointer hover:text-zinc-300 hover:underline"
+								className="cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-300 hover:underline"
 								onClick={() => onAppendFilter("series", book.Series ?? "")}
 								onKeyDown={(e) => {
 									if (e.key === "Enter" || e.key === " ")
@@ -132,7 +132,10 @@ export function BookPanel({
 							book.Series
 						)}
 						{book.SeriesIndex > 0 && (
-							<span className="text-zinc-600"> #{book.SeriesIndex}</span>
+							<span className="text-zinc-400 dark:text-zinc-600">
+								{" "}
+								#{book.SeriesIndex}
+							</span>
 						)}
 					</p>
 				)}
@@ -140,12 +143,12 @@ export function BookPanel({
 			</div>
 
 			{/* Metadata */}
-			<div className="px-4 py-3 border-b border-zinc-800 shrink-0">
+			<div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
 				<dl className="flex flex-col gap-1.5 text-xs">
 					{book.Publisher && (
 						<div className="flex gap-2">
 							<dt className="text-zinc-500 w-16 shrink-0">Publisher</dt>
-							<dd className="text-zinc-300 min-w-0 break-words">
+							<dd className="text-zinc-700 dark:text-zinc-300 min-w-0 break-words">
 								{book.Publisher}
 							</dd>
 						</div>
@@ -153,11 +156,11 @@ export function BookPanel({
 					{book.Language && (
 						<div className="flex gap-2">
 							<dt className="text-zinc-500 w-16 shrink-0">Language</dt>
-							<dd className="text-zinc-300">
+							<dd className="text-zinc-700 dark:text-zinc-300">
 								{onAppendFilter ? (
 									<button
 										type="button"
-										className="cursor-pointer hover:text-zinc-100 hover:underline"
+										className="cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline"
 										onClick={() => onAppendFilter("lang", book.Language ?? "")}
 										onKeyDown={(e) => {
 											if (e.key === "Enter" || e.key === " ")
@@ -175,7 +178,7 @@ export function BookPanel({
 					{book.DatePublished && (
 						<div className="flex gap-2">
 							<dt className="text-zinc-500 w-16 shrink-0">Published</dt>
-							<dd className="text-zinc-300">
+							<dd className="text-zinc-700 dark:text-zinc-300">
 								{formatDate(book.DatePublished)}
 							</dd>
 						</div>
@@ -183,13 +186,17 @@ export function BookPanel({
 					{book.DateAdded && (
 						<div className="flex gap-2">
 							<dt className="text-zinc-500 w-16 shrink-0">Added</dt>
-							<dd className="text-zinc-300">{formatDate(book.DateAdded)}</dd>
+							<dd className="text-zinc-700 dark:text-zinc-300">
+								{formatDate(book.DateAdded)}
+							</dd>
 						</div>
 					)}
 					{book.ISBN && (
 						<div className="flex gap-2">
 							<dt className="text-zinc-500 w-16 shrink-0">ISBN</dt>
-							<dd className="text-zinc-300 font-mono">{book.ISBN}</dd>
+							<dd className="text-zinc-700 dark:text-zinc-300 font-mono">
+								{book.ISBN}
+							</dd>
 						</div>
 					)}
 				</dl>
@@ -197,13 +204,13 @@ export function BookPanel({
 
 			{/* Tags */}
 			{book.Tags?.length > 0 && (
-				<div className="flex flex-wrap gap-1 px-4 py-3 border-b border-zinc-800 shrink-0">
+				<div className="flex flex-wrap gap-1 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
 					{book.Tags.map((t) => (
 						<button
 							type="button"
 							key={t}
 							onClick={() => onAppendFilter?.("tag", t)}
-							className={`text-[10px] px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300 ${onAppendFilter ? "hover:bg-zinc-600 hover:text-zinc-100 cursor-pointer transition-colors" : "cursor-default"}`}
+							className={`text-[10px] px-1.5 py-0.5 rounded bg-zinc-300 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 ${onAppendFilter ? "hover:bg-zinc-400 dark:hover:bg-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-100 cursor-pointer transition-colors" : "cursor-default"}`}
 						>
 							{t}
 						</button>
@@ -213,13 +220,13 @@ export function BookPanel({
 
 			{/* Formats */}
 			{book.Formats?.length === 0 && (
-				<div className="flex items-center gap-1.5 px-4 py-3 border-b border-zinc-800 shrink-0">
+				<div className="flex items-center gap-1.5 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
 					<Icon icon="warning-sign" size={12} className="text-yellow-500" />
 					<span className="text-[11px] text-zinc-500">No file formats</span>
 				</div>
 			)}
 			{book.Formats?.length > 0 && (
-				<div className="flex flex-col gap-1.5 px-4 py-3 border-b border-zinc-800 shrink-0">
+				<div className="flex flex-col gap-1.5 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
 					{book.Formats.map((f) =>
 						f.Missing ? (
 							<div key={f.Format} className="flex items-center gap-1.5">
@@ -234,7 +241,7 @@ export function BookPanel({
 								</span>
 								<button
 									type="button"
-									className="text-[10px] text-zinc-400 hover:text-zinc-100 underline cursor-pointer ml-1"
+									className="text-[10px] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 underline cursor-pointer ml-1"
 									onClick={() => onLocateFormat?.(book.ID as number, f.Hash)}
 									title="Locate file on disk"
 								>
@@ -275,7 +282,7 @@ export function BookPanel({
 			{book.Description && (
 				<div className="px-4 py-3">
 					<div
-						className="prose prose-invert prose-sm max-w-none text-zinc-400 text-[14px] leading-tight [&_p]:my-0.5 [&_p]:leading-tight [&_ul]:my-1 [&_li]:my-0"
+						className="prose prose-invert prose-sm max-w-none text-zinc-600 dark:text-zinc-400 text-[14px] leading-tight [&_p]:my-0.5 [&_p]:leading-tight [&_ul]:my-1 [&_li]:my-0"
 						dangerouslySetInnerHTML={{
 							__html: DOMPurify.sanitize(formatDescription(book.Description)),
 						}}

@@ -37,7 +37,7 @@ export function RichTextEditor({ value, onChange }: Props) {
 		editorProps: {
 			attributes: {
 				class:
-					"min-h-[240px] px-3 py-2 text-zinc-100 text-sm leading-relaxed focus:outline-none",
+					"min-h-[240px] px-3 py-2 text-zinc-900 dark:text-zinc-100 text-sm leading-relaxed focus:outline-none",
 			},
 		},
 	});
@@ -79,8 +79,8 @@ export function RichTextEditor({ value, onChange }: Props) {
 	}
 
 	return (
-		<div className="bg-zinc-800 border border-zinc-700 rounded focus-within:ring-2 focus-within:ring-blue-600">
-			<div className="flex gap-1 px-2 py-1 border-b border-zinc-700">
+		<div className="bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded focus-within:ring-2 focus-within:ring-blue-600">
+			<div className="flex gap-1 px-2 py-1 border-b border-zinc-300 dark:border-zinc-700">
 				{TOOLBAR.map(({ label, action, title }) => (
 					<button
 						key={title}
@@ -92,8 +92,8 @@ export function RichTextEditor({ value, onChange }: Props) {
 						}}
 						className={`w-7 h-7 rounded text-xs font-medium transition-colors ${
 							isActive(action)
-								? "bg-zinc-600 text-zinc-100"
-								: "text-zinc-400 hover:bg-zinc-700 hover:text-zinc-100"
+								? "bg-zinc-400 dark:bg-zinc-600 text-zinc-900 dark:text-zinc-100"
+								: "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100"
 						}`}
 					>
 						{label}

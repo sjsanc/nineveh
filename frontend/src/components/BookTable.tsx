@@ -170,7 +170,7 @@ const COLUMNS: ColumnDef<Book>[] = [
 					{visible.map((t) => (
 						<span
 							key={t}
-							className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300 truncate max-w-[72px]"
+							className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-300 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 truncate max-w-[72px]"
 						>
 							{t}
 						</span>
@@ -320,7 +320,7 @@ export function BookTable({
 			cell: ({ getValue }) =>
 				getValue<boolean>() ? (
 					<span
-						className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold text-zinc-900"
+						className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold text-zinc-100 dark:text-zinc-900"
 						style={{ backgroundColor: color }}
 					>
 						{letter}
@@ -433,7 +433,7 @@ export function BookTable({
 
 	return (
 		<div className="flex flex-col h-full w-full overflow-hidden">
-			<div className="border-b border-zinc-800 shrink-0 flex items-stretch">
+			<div className="border-b border-zinc-200 dark:border-zinc-800 shrink-0 flex items-stretch">
 				<span className="flex items-center pl-3 pr-2 shrink-0 text-zinc-500">
 					<Icon icon="search" size={16} />
 				</span>
@@ -458,7 +458,7 @@ export function BookTable({
 							}
 						}
 					}}
-					className="flex-1 text-[16px] line-height bg-transparent text-zinc-200 placeholder-zinc-500 outline-2 outline-hidden m-1 h-8"
+					className="flex-1 text-[16px] line-height bg-transparent text-zinc-800 dark:text-zinc-200 placeholder-zinc-500 outline-2 outline-hidden m-1 h-8"
 				/>
 				{inputValue && (
 					<button
@@ -467,7 +467,7 @@ export function BookTable({
 							setInputValue("");
 							onSearchQueryChange?.("");
 						}}
-						className="flex items-center justify-center w-7 h-7 my-auto mr-1 shrink-0 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+						className="flex items-center justify-center w-7 h-7 my-auto mr-1 shrink-0 rounded text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
 						title="Clear search"
 					>
 						<Icon icon="cross" size={14} />
@@ -475,17 +475,17 @@ export function BookTable({
 				)}
 				{selectionCount > 1 && (
 					<span className="flex items-center pr-2 shrink-0">
-						<span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-300">
+						<span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-300 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
 							{selectionCount} selected
 						</span>
 					</span>
 				)}
 				{viewMode === "grid" && (
-					<div className="flex items-center border-l border-zinc-800 px-2 shrink-0">
+					<div className="flex items-center border-l border-zinc-200 dark:border-zinc-800 px-2 shrink-0">
 						<select
 							value={gridSort}
 							onChange={(e) => setGridSort(e.target.value)}
-							className="bg-zinc-900 text-zinc-300 text-xs border border-zinc-700 outline-none rounded px-1.5 h-7 shrink-0 cursor-pointer hover:border-zinc-500 transition-colors"
+							className="bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 text-xs border border-zinc-300 dark:border-zinc-700 outline-none rounded px-1.5 h-7 shrink-0 cursor-pointer hover:border-zinc-500 transition-colors"
 						>
 							<option value="title-asc">Title A→Z</option>
 							<option value="title-desc">Title Z→A</option>
@@ -499,14 +499,14 @@ export function BookTable({
 						</select>
 					</div>
 				)}
-				<div className="flex items-center gap-1 px-2 border-l border-zinc-800 shrink-0">
+				<div className="flex items-center gap-1 px-2 border-l border-zinc-200 dark:border-zinc-800 shrink-0">
 					<button
 						type="button"
 						onClick={() => {
 							setViewMode("table");
 							localStorage.setItem("viewMode", "table");
 						}}
-						className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${viewMode === "table" ? "text-zinc-200 bg-zinc-700" : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800"}`}
+						className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${viewMode === "table" ? "text-zinc-800 dark:text-zinc-200 bg-zinc-300 dark:bg-zinc-700" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800"}`}
 						title="Table view"
 					>
 						<Icon icon="th-list" size={14} />
@@ -517,7 +517,7 @@ export function BookTable({
 							setViewMode("grid");
 							localStorage.setItem("viewMode", "grid");
 						}}
-						className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${viewMode === "grid" ? "text-zinc-200 bg-zinc-700" : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800"}`}
+						className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${viewMode === "grid" ? "text-zinc-800 dark:text-zinc-200 bg-zinc-300 dark:bg-zinc-700" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800"}`}
 						title="Grid view"
 					>
 						<Icon icon="th" size={14} />
@@ -548,7 +548,7 @@ export function BookTable({
 				className={`overflow-x-auto overflow-y-auto flex-1 outline-none ${viewMode === "grid" ? "hidden" : ""}`}
 			>
 				<table
-					className="text-sm text-zinc-200"
+					className="text-sm text-zinc-800 dark:text-zinc-200"
 					style={{
 						width: effectiveWidth || "100%",
 						minWidth: MIN_TABLE_WIDTH,
@@ -579,12 +579,12 @@ export function BookTable({
 									onContextMenu={(e) =>
 										handleContextMenu(e, row.original, virtualRow.index)
 									}
-									className={`border-b border-zinc-800/60 cursor-pointer transition-colors select-none ${
+									className={`border-b border-zinc-200 dark:border-zinc-800/60 cursor-pointer transition-colors select-none ${
 										isSelected
-											? "bg-zinc-700/60"
+											? "bg-zinc-300 dark:bg-zinc-700/60"
 											: virtualRow.index % 2 !== 0
-												? "bg-zinc-900/30 hover:bg-zinc-800/60"
-												: "hover:bg-zinc-800/60"
+												? "bg-zinc-100 dark:bg-zinc-900/30 hover:bg-zinc-200 dark:hover:bg-zinc-800/60"
+												: "bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-200 dark:hover:bg-zinc-800/60"
 									}`}
 								>
 									{row.getVisibleCells().map((cell) => (

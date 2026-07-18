@@ -40,6 +40,7 @@ import { SettingsDialog } from "./components/SettingsDialog";
 import { Sidebar } from "./components/Sidebar";
 import { SubSidebar } from "./components/SubSidebar";
 import { DeviceProvider } from "./deviceContext";
+import { useResolvedTheme } from "./lib/useTheme";
 import { usePrefs } from "./prefsContext";
 import {
 	type Book,
@@ -53,6 +54,11 @@ const KINDLE_FORMAT_PRIORITY = ["azw3", "mobi", "azw", "epub", "pdf"];
 
 function App() {
 	const { prefs: appPrefs, updatePrefs } = usePrefs();
+	useResolvedTheme(
+		appPrefs.theme === "light" || appPrefs.theme === "dark"
+			? appPrefs.theme
+			: "system",
+	);
 	const [books, setBooks] = useState<Book[]>([]);
 	const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 	const [selectedBookIds, setSelectedBookIds] = useState<Set<number>>(
@@ -570,7 +576,7 @@ function App() {
 		<DeviceProvider
 			value={{ devices, activeDeviceID, deviceLetterMap, deviceBooks }}
 		>
-			<div className="bp6-dark h-screen w-screen flex bg-zinc-950 text-zinc-100 overflow-hidden">
+			<div className="h-screen w-screen flex bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 overflow-hidden">
 				<Sidebar
 					isLibraryActive={activeSection === "library"}
 					isDevicesActive={activeSection === "devices"}
@@ -633,7 +639,7 @@ function App() {
 									{showMissingCallout && (
 										<Callout
 											intent="warning"
-											className="mx-3 mt-2 mb-2 text-xs shrink-0 relative border-b border-zinc-700"
+											className="mx-3 mt-2 mb-2 text-xs shrink-0 relative border-b border-zinc-300 dark:border-zinc-700"
 										>
 											<span>
 												{missingCount} book{missingCount === 1 ? "" : "s"} have
@@ -649,7 +655,7 @@ function App() {
 											</span>
 											<button
 												type="button"
-												className="absolute top-2 right-2 text-zinc-400 hover:text-zinc-100 text-lg leading-none"
+												className="absolute top-2 right-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 text-lg leading-none"
 												onClick={() => setMissingCalloutDismissed(true)}
 												aria-label="Dismiss"
 											>

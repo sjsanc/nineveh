@@ -53,10 +53,9 @@ export function BookContextMenu({
 	return ReactDOM.createPortal(
 		<div
 			id={menuId}
-			className="bp6-dark"
 			style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 1000 }}
 		>
-			<Menu>
+			<Menu className="shadow-lg">
 				<MenuItem
 					disabled
 					text={`${selectionCount} book${selectionCount === 1 ? "" : "s"} selected`}

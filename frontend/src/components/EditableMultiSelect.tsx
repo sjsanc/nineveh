@@ -72,7 +72,6 @@ export function EditableMultiSelect<TFieldValues extends FieldValues>({
 							<MenuItem disabled text="No results" roleStructure="listoption" />
 						}
 						placeholder={placeholder}
-						popoverProps={{ popoverClassName: "bp6-dark" }}
 					/>
 				);
 			}}
