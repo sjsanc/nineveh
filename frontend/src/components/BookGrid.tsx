@@ -2,7 +2,7 @@ import { Icon } from "@blueprintjs/core";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMemo } from "react";
 import { GetCoverData } from "../../wailsjs/go/main/App";
-import { useDevice } from "../deviceContext";
+import { useDevice } from "../contexts/deviceContext";
 import { useContainerWidth } from "../lib/useContainerWidth";
 import { useCoverImage } from "../lib/useCoverImage";
 import { useDismissableContextMenu } from "../lib/useDismissableContextMenu";

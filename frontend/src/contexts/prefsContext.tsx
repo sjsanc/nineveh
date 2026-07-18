@@ -6,8 +6,8 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { GetPreferences, SavePreferences } from "../wailsjs/go/main/App";
-import { prefs } from "../wailsjs/go/models";
+import { GetPreferences, SavePreferences } from "../../wailsjs/go/main/App";
+import { prefs } from "../../wailsjs/go/models";
 
 const defaults: prefs.Preferences = new prefs.Preferences({
 	libraryRoot: "",

@@ -1,5 +1,5 @@
 import { Icon } from "@blueprintjs/core";
-import { useDevice } from "../deviceContext";
+import { useDevice } from "../contexts/deviceContext";
 import { deviceColor } from "../utils";
 
 interface Props {

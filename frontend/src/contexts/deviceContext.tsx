@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, useContext } from "react";
-import type { BookFile, DeviceInfo } from "./types";
+import type { BookFile, DeviceInfo } from "../types";
 
 interface DeviceContextValue {
 	devices: DeviceInfo[];

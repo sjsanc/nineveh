@@ -11,12 +11,12 @@ import { FetchMetadataDialog } from "./components/FetchMetadataDialog";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { Sidebar } from "./components/Sidebar";
 import { SubSidebar } from "./components/SubSidebar";
-import { DeviceProvider } from "./deviceContext";
+import { DeviceProvider } from "./contexts/deviceContext";
 import { useDevices } from "./lib/useDevices";
 import { useLibrary } from "./lib/useLibrary";
 import { useResolvedTheme } from "./lib/useTheme";
 import { useToaster } from "./lib/useToaster";
-import { usePrefs } from "./prefsContext";
+import { usePrefs } from "./contexts/prefsContext";
 
 function App() {
 	const { prefs: appPrefs, updatePrefs } = usePrefs();

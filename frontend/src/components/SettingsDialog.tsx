@@ -8,7 +8,7 @@ import {
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { prefs } from "../../wailsjs/go/models";
-import { usePrefs } from "../prefsContext";
+import { usePrefs } from "../contexts/prefsContext";
 import { FORMAT_COLORS } from "../utils";
 
 const READER_FORMATS = ["epub", "pdf", "mobi", "azw", "azw3"] as const;

@@ -13,7 +13,7 @@ import {
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useDevice } from "../deviceContext";
+import { useDevice } from "../contexts/deviceContext";
 import { makeTableKeyDown } from "../lib/tableKeyboard";
 import { useContainerWidth } from "../lib/useContainerWidth";
 import { useDismissableContextMenu } from "../lib/useDismissableContextMenu";
