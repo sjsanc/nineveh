@@ -1,3 +1,11 @@
+// Package metadata reads embedded ebook metadata into the canonical Book
+// model. Each format has its own parser (epub.go, mobi.go, azw3.go, pdf.go)
+// behind the Parser interface; opf.go holds the OPF/XML parsing shared by
+// the EPUB parser and the Calibre importer (internal/library/calibre.go).
+//
+// golden_test.go checks each parser's output against real ebook fixtures
+// under testdata/ — see testdata/README.md for where they came from and how
+// to regenerate the derived formats.
 package metadata
 
 type Format string

@@ -23,10 +23,25 @@ func TestOPF_DateParsing(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			book := (&xmlPackage{Metadata: xmlMetadata{Titles: []string{"T"}, Date: tc.date}}).toBook()
+			var dates []xmlDate
+			if tc.date != "" {
+				dates = []xmlDate{{Value: tc.date}}
+			}
+			book := (&xmlPackage{Metadata: xmlMetadata{Titles: []string{"T"}, Dates: dates}}).toBook()
 			assert.Equal(t, tc.want, book.DatePublished)
 		})
 	}
+}
+
+func TestOPF_DateParsing_PrefersPublicationEvent(t *testing.T) {
+	pkg := &xmlPackage{Metadata: xmlMetadata{
+		Titles: []string{"T"},
+		Dates: []xmlDate{
+			{Event: "publication", Value: "2008-06-27"},
+			{Event: "conversion", Value: "2026-08-01T07:31:50+00:00"},
+		},
+	}}
+	assert.Equal(t, "2008-06-27T00:00:00Z", pkg.toBook().DatePublished)
 }
 
 func TestOPF_CalibreRating(t *testing.T) {

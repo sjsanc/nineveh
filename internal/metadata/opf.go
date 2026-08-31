@@ -23,9 +23,14 @@ type xmlMetadata struct {
 	Language    string          `xml:"language"`
 	Description string          `xml:"description"`
 	Subjects    []string        `xml:"subject"`
-	Date        string          `xml:"date"`
+	Dates       []xmlDate       `xml:"date"`
 	Metas       []xmlMeta       `xml:"meta"`
 	Identifiers []xmlIdentifier `xml:"identifier"`
+}
+
+type xmlDate struct {
+	Event string `xml:"event,attr"`
+	Value string `xml:",chardata"`
 }
 
 type xmlIdentifier struct {
@@ -75,7 +80,7 @@ func (pkg *xmlPackage) toBook() *Book {
 	book.Description = strings.TrimSpace(m.Description)
 	book.Tags = m.Subjects
 
-	if d := strings.TrimSpace(m.Date); d != "" {
+	if d := strings.TrimSpace(pickPublicationDate(m.Dates)); d != "" {
 		for _, layout := range []string{time.RFC3339, "2006-01-02", "2006"} {
 			if t, err := time.Parse(layout, d); err == nil {
 				book.DatePublished = t.UTC().Format(time.RFC3339)
@@ -123,6 +128,23 @@ func (pkg *xmlPackage) toBook() *Book {
 	}
 
 	return book
+}
+
+// pickPublicationDate prefers the dc:date tagged opf:event="publication" —
+// the book's actual publication date — over other date events some tools
+// stamp on the same file (e.g. Project Gutenberg and Calibre both add an
+// opf:event="conversion" date whenever they regenerate an EPUB). Falls back
+// to the first date present if no publication event is tagged.
+func pickPublicationDate(dates []xmlDate) string {
+	for _, d := range dates {
+		if strings.EqualFold(d.Event, "publication") {
+			return d.Value
+		}
+	}
+	if len(dates) > 0 {
+		return dates[0].Value
+	}
+	return ""
 }
 
 // ParseOPFFile parses a standalone OPF XML file on disk into a Book.

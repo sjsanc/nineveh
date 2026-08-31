@@ -84,6 +84,9 @@ func parseMobiFile(filePath string) (*Book, error) {
 	}
 
 	book := &Book{Title: title}
+	if lang, ok := mobiLanguageCodes[mobi.language&0xFF]; ok {
+		book.Language = lang
+	}
 
 	// EXTH block is present when bit 6 of exthFlags is set.
 	if mobi.exthFlags&0x40 == 0 {
@@ -111,6 +114,9 @@ func parseMobiFile(filePath string) (*Book, error) {
 	if vals, ok := exth[106]; ok && len(vals) > 0 {
 		book.DatePublished = vals[0]
 	}
+	if vals, ok := exth[105]; ok {
+		book.Tags = vals
+	}
 	// Type 503 is the updated title (preferred over the full-name field).
 	if vals, ok := exth[503]; ok && len(vals) > 0 {
 		book.Title = vals[0]
@@ -134,6 +140,7 @@ type mobiHeaderFields struct {
 	firstImageIndex uint32 // first actual image record; EXTH coveroffset is relative to this
 	fullNameOffset  uint32 // from start of record 0
 	fullNameLength  uint32
+	language        uint32 // packed locale ID; primary language is the low byte
 	exthFlags       uint32
 }
 
@@ -145,6 +152,7 @@ func parseMobiHeaderFields(rec0 []byte) (mobiHeaderFields, error) {
 	//   [80:84] firstNonBookIndex  (MOBI header 0x40)
 	//   [84:88] fullNameOffset     (MOBI header 0x44)
 	//   [88:92] fullNameLength     (MOBI header 0x48)
+	//   [92:96] language           (MOBI header 0x4C)
 	//  [108:112] firstImageIndex   (MOBI header 0x5C) — present when headerLength >= 0x5C+4
 	//  [128:132] exthFlags         (MOBI header 0x70)
 	if len(rec0) < 132 {
@@ -155,6 +163,7 @@ func parseMobiHeaderFields(rec0 []byte) (mobiHeaderFields, error) {
 		firstNonBook:   binary.BigEndian.Uint32(rec0[80:84]),
 		fullNameOffset: binary.BigEndian.Uint32(rec0[84:88]),
 		fullNameLength: binary.BigEndian.Uint32(rec0[88:92]),
+		language:       binary.BigEndian.Uint32(rec0[92:96]),
 		exthFlags:      binary.BigEndian.Uint32(rec0[128:132]),
 	}
 	// firstImageIndex is at MOBI header offset 0x5C = rec0[108].
@@ -193,7 +202,7 @@ func parseEXTH(rec0 []byte, exthStart int) (map[uint32][]string, int, error) {
 		pos += int(recLen)
 
 		switch recType {
-		case 100, 101, 103, 104, 106, 503:
+		case 100, 101, 103, 104, 105, 106, 503:
 			result[recType] = append(result[recType], string(data))
 		case 201:
 			// Cover record index relative to firstNonBook. 0xFFFFFFFF = no cover.
@@ -233,4 +242,25 @@ func readMobiRecord(f *os.File, offsets []int64, idx, total int) ([]byte, error)
 		return nil, fmt.Errorf("read record %d: %w", idx, err)
 	}
 	return buf, nil
+}
+
+// mobiLanguageCodes maps a MOBI header's primary language ID (the low byte
+// of the packed language field, using the same numbering as Windows LANGID
+// primary codes) to an ISO 639-1 tag. Dialect sub-codes in the high byte are
+// ignored — coarse language identification is all Nineveh needs. Unknown
+// codes are left unset rather than guessed.
+var mobiLanguageCodes = map[uint32]string{
+	0x01: "ar", 0x02: "bg", 0x03: "ca", 0x04: "zh", 0x05: "cs",
+	0x06: "da", 0x07: "de", 0x08: "el", 0x09: "en", 0x0A: "es",
+	0x0B: "fi", 0x0C: "fr", 0x0D: "he", 0x0E: "hu", 0x0F: "is",
+	0x10: "it", 0x11: "ja", 0x12: "ko", 0x13: "nl", 0x14: "no",
+	0x15: "pl", 0x16: "pt", 0x18: "ro", 0x19: "ru", 0x1A: "hr",
+	0x1B: "sk", 0x1C: "sq", 0x1D: "sv", 0x1E: "th", 0x1F: "tr",
+	0x20: "ur", 0x21: "id", 0x22: "uk", 0x23: "be", 0x24: "sl",
+	0x25: "et", 0x26: "lv", 0x27: "lt", 0x29: "vi", 0x2A: "az",
+	0x2B: "hy", 0x2C: "eu", 0x2E: "mk", 0x35: "af", 0x36: "ka",
+	0x38: "hi", 0x39: "mt", 0x3D: "yi", 0x3E: "ms", 0x3F: "kk",
+	0x41: "sw", 0x45: "bn", 0x46: "pa", 0x47: "gu", 0x49: "ta",
+	0x4A: "te", 0x4B: "kn", 0x4C: "ml", 0x4E: "mr", 0x4F: "sa",
+	0x50: "mn",
 }
