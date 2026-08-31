@@ -151,6 +151,12 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 	}
 
 	async function handleRemoveBooks(ids: number[]) {
+		if (
+			!confirm(
+				`Remove ${ids.length} book${ids.length === 1 ? "" : "s"} from your library?`,
+			)
+		)
+			return;
 		const results = await Promise.allSettled(ids.map((id) => DeleteBook(id)));
 		const removed = results.filter((r) => r.status === "fulfilled").length;
 		results.forEach((r, i) => {
