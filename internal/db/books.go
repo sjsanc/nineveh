@@ -171,11 +171,23 @@ func (d *DB) DeleteBook(id int64) error {
 }
 
 func (d *DB) DeleteAllBooks() error {
-	_, err := d.conn.Exec(`DELETE FROM books`)
+	tx, err := d.conn.Begin()
 	if err != nil {
+		return fmt.Errorf("begin delete all books: %w", err)
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec(`DELETE FROM books`); err != nil {
 		return fmt.Errorf("delete all books: %w", err)
 	}
-	return nil
+	if _, err := tx.Exec(`DELETE FROM authors`); err != nil {
+		return fmt.Errorf("delete all authors: %w", err)
+	}
+	if _, err := tx.Exec(`DELETE FROM tags`); err != nil {
+		return fmt.Errorf("delete all tags: %w", err)
+	}
+
+	return tx.Commit()
 }
 
 func (d *DB) SearchBooks(query string) ([]*metadata.Book, error) {
