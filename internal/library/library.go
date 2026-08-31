@@ -65,8 +65,32 @@ func (l *Library) UpdateBook(book *metadata.Book) error {
 	return l.db.UpdateBook(book)
 }
 
+// DeleteBook removes a book from the database and best-effort deletes its
+// format files (and the book's now-empty library directory) from disk.
+// The DB row is the source of truth: if it's gone, the book is gone, even
+// if a file happened to survive cleanup (e.g. a permissions error).
 func (l *Library) DeleteBook(id int64) error {
-	return l.db.DeleteBook(id)
+	book, err := l.db.GetBook(id)
+	if err != nil {
+		return fmt.Errorf("get book: %w", err)
+	}
+
+	if err := l.db.DeleteBook(id); err != nil {
+		return err
+	}
+
+	var dir string
+	for _, f := range book.Formats {
+		if dir == "" {
+			dir = filepath.Dir(f.Path)
+		}
+		os.Remove(f.Path)
+	}
+	if dir != "" {
+		os.Remove(dir) // only succeeds if now empty; ignored otherwise
+	}
+
+	return nil
 }
 
 func (l *Library) Search(query string) ([]*metadata.Book, error) {
