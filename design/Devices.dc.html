@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Geist", ui-sans-serif, system-ui, sans-serif; }
+    a { color: #60a5fa; }
+    a:hover { color: #93c5fd; }
+    .rail-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: none; background: transparent; cursor: pointer; }
+    table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 14px; color: #e4e4e7; }
+    th { text-align: left; font-weight: 500; font-size: 12px; color: #a1a1aa; padding: 8px 12px; border-bottom: 1px solid #27272a; background: #18181b; position: sticky; top: 0; }
+    td { padding: 8px 12px; border-bottom: 1px solid rgba(39,39,42,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    tr.odd { background: rgba(24,24,27,0.3); }
+    tr.even { background: #09090b; }
+    .fmt { font-size: 10px; padding: 2px 6px; border-radius: 4px; color: #fff; font-family: ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.03em; }
+  </style>
+</helmet>
+<div style="width:1440px;height:900px;background:#09090b;display:flex;overflow:hidden;">
+
+  <!-- Icon rail -->
+  <div style="width:48px;flex-shrink:0;background:#18181b;border-right:1px solid #27272a;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:8px;">
+    <button class="rail-btn" style="color:#71717a;" title="Library">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5v-18z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/></svg>
+    </button>
+    <button class="rail-btn" style="background:#3f3f46;color:#f4f4f5;" title="Devices">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+    </button>
+    <div style="flex:1;"></div>
+    <button class="rail-btn" style="color:#52525b;" title="Rescan for devices">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 3v6h-6"/></svg>
+    </button>
+    <button class="rail-btn" style="color:#52525b;" title="Settings">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+
+  <!-- Sub-sidebar (device list) -->
+  <div style="width:48px;flex-shrink:0;background:#09090b;border-right:1px solid #27272a;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:8px;">
+    <button class="rail-btn" style="box-shadow:0 0 0 2px #71717a;" title="Kindle">
+      <div style="width:28px;height:28px;border-radius:4px;background:#38bdf8;color:#18181b;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;">A</div>
+    </button>
+  </div>
+
+  <!-- Main column -->
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+
+    <!-- Device header -->
+    <div style="padding:12px 16px;border-bottom:1px solid #27272a;display:flex;align-items:center;gap:32px;background:rgba(24,24,27,0.5);flex-shrink:0;">
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <span style="font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:0.05em;">Device</span>
+        <span style="font-size:14px;color:#e4e4e7;font-weight:500;">Kindle</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <span style="font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:0.05em;">Books</span>
+        <span style="font-size:14px;color:#e4e4e7;font-weight:500;">17</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <span style="font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:0.05em;">Free Space</span>
+        <span style="font-size:14px;color:#e4e4e7;font-weight:500;">13477.3 MB</span>
+      </div>
+      <button class="rail-btn" style="width:32px;height:32px;margin-left:auto;color:#71717a;" title="Eject device">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4l6 8H6l6-8z"/><rect x="5" y="16" width="14" height="3" rx="0.5"/></svg>
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div style="flex:1;overflow:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:48px;">#</th>
+            <th>Title</th>
+            <th>Author(s)</th>
+            <th style="width:100px;">Format</th>
+            <th style="width:90px;">In Library</th>
+            <th style="width:90px;">Size</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="odd"><td style="color:#71717a;">1</td><td>A Short History of Nearly Everything</td><td>Bryson Bill</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">645.3 KB</td></tr>
+          <tr class="even"><td style="color:#71717a;">2</td><td>A Parade of Horribles: Dungeon Crawler Carl Book 8</td><td>Matt Dinniman</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">1.9 MB</td></tr>
+          <tr class="odd"><td style="color:#71717a;">3</td><td>Diaspora</td><td>Greg Egan</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">527.7 KB</td></tr>
+          <tr class="even"><td style="color:#71717a;">4</td><td>The Tipping Point: How Little Things Can Make a Big Difference</td><td>Malcolm Gladwell</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">439.8 KB</td></tr>
+          <tr class="odd"><td style="color:#71717a;">5</td><td>Debt - Updated and Expanded: The First 5,000 Years</td><td>David Graeber</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">1.6 MB</td></tr>
+          <tr class="even"><td style="color:#71717a;">6</td><td>100% Match</td><td>Patrick C. Harrison III</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">407.9 KB</td></tr>
+          <tr class="odd"><td style="color:#71717a;">7</td><td>Island</td><td>Aldous Huxley</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">448.8 KB</td></tr>
+          <tr class="even"><td style="color:#71717a;">8</td><td>The Girl with the Dragon Tattoo</td><td>Stieg Larsson</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">998.1 KB</td></tr>
+          <tr class="odd"><td style="color:#71717a;">9</td><td>Rebecca</td><td>Daphne Du Maurier</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">933.0 KB</td></tr>
+          <tr class="even"><td style="color:#71717a;">10</td><td>The Road</td><td>Cormac McCarthy</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">246.7 KB</td></tr>
+          <tr class="odd"><td style="color:#71717a;">11</td><td>Galatea</td><td>Madeline Miller</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">243.8 KB</td></tr>
+          <tr class="even"><td style="color:#71717a;">12</td><td>Fool</td><td>Christopher Moore</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">531.5 KB</td></tr>
+          <tr class="odd"><td style="color:#71717a;">13</td><td>Intermezzo</td><td>Sally Rooney</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">1.8 MB</td></tr>
+          <tr class="even"><td style="color:#71717a;">14</td><td>The Crystal Shard</td><td>R. A. Salvatore</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">564.5 KB</td></tr>
+          <tr class="odd"><td style="color:#71717a;">15</td><td>Vivisepulture</td><td>Smith, Guy N.; Tchaikovsky, Adrian; McMahon, Gary; Savile, St…</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">520.9 KB</td></tr>
+          <tr class="even"><td style="color:#71717a;">16</td><td>Accelerando</td><td>Charles Stross</td><td><span class="fmt" style="background:#ea580c;">MOBI</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">633.2 KB</td></tr>
+          <tr class="odd"><td style="color:#71717a;">17</td><td>Oxford Dictionary of English</td><td>Unknown</td><td><span class="fmt" style="background:#52525b;">AZW</span></td><td style="color:#52525b;">—</td><td style="color:#a1a1aa;">47.1 MB</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

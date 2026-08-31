@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Geist", ui-sans-serif, system-ui, sans-serif; }
+    h3.section { margin: 0 0 16px; font-size: 12px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.05em; }
+    .row { display: flex; align-items: center; justify-content: space-between; }
+    .label { margin: 0; font-size: 14px; font-weight: 500; color: #d4d4d8; }
+    .hint { margin: 2px 0 0; font-size: 12px; color: #71717a; }
+    .switch { width: 32px; height: 18px; border-radius: 999px; position: relative; flex-shrink: 0; }
+    .switch::after { content: ""; position: absolute; top: 2px; width: 14px; height: 14px; border-radius: 999px; background: #fff; }
+    .switch.on { background: #2563eb; } .switch.on::after { right: 2px; }
+    .switch.off { background: #3f3f46; } .switch.off::after { left: 2px; }
+    input.field { width: 100%; box-sizing: border-box; background: #27272a; box-shadow: inset 0 0 0 1px #3f3f46; color: #f4f4f5; border: none; border-radius: 4px; padding: 8px 12px; font-size: 14px; }
+    .fmt { font-size: 10px; padding: 2px 6px; border-radius: 4px; color: #fff; font-family: ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.03em; width: 40px; text-align: center; flex-shrink: 0; }
+    select.field { background: #27272a; box-shadow: inset 0 0 0 1px #3f3f46; color: #f4f4f5; border: none; border-radius: 4px; padding: 6px 10px; font-size: 14px; }
+  </style>
+</helmet>
+<div style="width:1200px;height:1180px;background:#09090b;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);"></div>
+
+  <div style="position:relative;width:512px;max-height:1100px;background:#18181b;border-radius:8px;border:1px solid #27272a;box-shadow:0 20px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;overflow:hidden;">
+
+    <!-- Header -->
+    <div style="background:#18181b;border-bottom:1px solid #27272a;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <h2 style="margin:0;font-size:18px;font-weight:600;color:#f4f4f5;">Settings</h2>
+      <span style="font-size:24px;line-height:1;color:#a1a1aa;">×</span>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:24px;display:flex;flex-direction:column;gap:24px;overflow-y:auto;">
+
+      <section>
+        <h3 class="section">Appearance</h3>
+        <div class="row">
+          <div>
+            <p class="label">Theme</p>
+            <p class="hint">"System" follows your OS light/dark setting.</p>
+          </div>
+          <select class="field"><option>Dark</option></select>
+        </div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:16px;">
+        <h3 class="section" style="margin-bottom:0;">Library</h3>
+        <div class="row">
+          <div>
+            <p class="label">Double-click opens metadata editor</p>
+            <p class="hint">When off, double-click opens the book file instead.</p>
+          </div>
+          <div class="switch off"></div>
+        </div>
+        <div class="row">
+          <div>
+            <p class="label">Relocate library</p>
+            <p class="hint">If you moved your book files, point Nineveh at the new location.</p>
+          </div>
+          <button style="font-size:12px;padding:5px 10px;border-radius:4px;border:1px solid #3f3f46;background:transparent;color:#e4e4e7;flex-shrink:0;">Relocate…</button>
+        </div>
+      </section>
+
+      <section>
+        <h3 class="section">Columns</h3>
+        <p class="hint" style="margin:0 0 12px;">Choose which columns are visible in the library table.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:16px;row-gap:4px;">
+          <div class="row"><span class="label" style="font-weight:400;">Read</span><div class="switch on"></div></div>
+          <div class="row"><span class="label" style="font-weight:400;">Title</span><div class="switch on"></div></div>
+          <div class="row"><span class="label" style="font-weight:400;">Author(s)</span><div class="switch on"></div></div>
+          <div class="row"><span class="label" style="font-weight:400;">Series</span><div class="switch on"></div></div>
+          <div class="row"><span class="label" style="font-weight:400;">Tags</span><div class="switch on"></div></div>
+          <div class="row"><span class="label" style="font-weight:400;">Rating</span><div class="switch on"></div></div>
+          <div class="row"><span class="label" style="font-weight:400;">Published</span><div class="switch on"></div></div>
+          <div class="row"><span class="label" style="font-weight:400;">Added</span><div class="switch on"></div></div>
+        </div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:12px;">
+        <h3 class="section" style="margin-bottom:0;">Metadata Sources</h3>
+        <div class="row">
+          <p class="label">Open Library</p>
+          <div class="switch on"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="row">
+            <p class="label">Google Books</p>
+            <div class="switch on"></div>
+          </div>
+          <input class="field" type="password" placeholder="Google Books API key" />
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(180,83,9,0.15);border:1px solid rgba(180,83,9,0.4);border-radius:4px;padding:8px 12px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" style="flex-shrink:0;"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+            <span style="font-size:12px;color:#fcd34d;">An API key is required to use Google Books.</span>
+          </div>
+        </div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:12px;">
+        <h3 class="section" style="margin-bottom:0;">Reader Applications</h3>
+        <p class="hint" style="margin:0;">Command used to open each format. Leave blank to use xdg-open.</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="fmt" style="background:#047857;">EPUB</span>
+          <input class="field" placeholder="xdg-open (default)" />
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="fmt" style="background:#1d4ed8;">PDF</span>
+          <input class="field" placeholder="xdg-open (default)" />
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="fmt" style="background:#ea580c;">MOBI</span>
+          <input class="field" placeholder="xdg-open (default)" />
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="fmt" style="background:#52525b;">AZW</span>
+          <input class="field" placeholder="xdg-open (default)" />
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="fmt" style="background:#7e22ce;">AZW3</span>
+          <input class="field" placeholder="xdg-open (default)" />
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <div style="border-top:1px solid #27272a;padding:16px 24px;display:flex;justify-content:flex-end;flex-shrink:0;">
+      <button style="padding:8px 16px;font-size:14px;color:#d4d4d8;background:transparent;border:1px solid #3f3f46;border-radius:4px;">Close</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

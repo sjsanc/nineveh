@@ -47,6 +47,14 @@ Key patterns:
 - `@tanstack/react-table` + `@tanstack/react-virtual` for virtualized book/device tables.
 - Shared hooks live in `src/lib/` (e.g. `useCoverImage`, `useShiftCtrlSelect`, `useResizablePanel`).
 
+## Design canvas (`design/`)
+
+`design/` holds a reverse-engineered, editable mockup of the frontend for sketching UI changes before building them in React — Blueprint dark theme, zinc palette, Geist font, all lifted from the real `frontend/src` components.
+
+- `Main.dc.html` / `Devices.dc.html` / `Settings.dc.html` — one artboard per screen (Library grid, Kindle device table, Settings modal). `canvas.json` lays them out.
+- Published, editable canvas: https://claude.ai/code/artifact/99c9d7b1-9c87-4639-965d-17909b9ccb59 — this URL is permanent across republishes.
+- These files are a snapshot only. Edits made visually in the published canvas do **not** flow back here automatically — after a browser edit, re-extract with the `design` skill's `seed-canvas.mjs --extract` and commit the result. Conversely, after changing these files, re-seed and republish to the same URL so the canvas matches.
+
 ## Linting & Formatting
 
 The frontend uses [Biome](https://biomejs.dev/) for linting and formatting (`frontend/biome.json`). Run it from `frontend/`:

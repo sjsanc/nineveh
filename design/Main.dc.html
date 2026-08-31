@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Geist", ui-sans-serif, system-ui, sans-serif; }
+    a { color: #60a5fa; }
+    a:hover { color: #93c5fd; }
+    ::placeholder { color: #71717a; }
+    .icon { flex-shrink: 0; }
+    .rail-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: none; background: transparent; cursor: pointer; }
+    .cover-card { border-radius: 4px; overflow: hidden; aspect-ratio: 2/3; background: #27272a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px; text-align: center; cursor: pointer; }
+  </style>
+</helmet>
+<div style="width:1440px;height:900px;background:#09090b;display:flex;overflow:hidden;">
+
+  <!-- Icon rail -->
+  <div style="width:48px;flex-shrink:0;background:#18181b;border-right:1px solid #27272a;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:8px;">
+    <button class="rail-btn" style="background:#3f3f46;color:#f4f4f5;" title="Library">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5v-18z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/></svg>
+    </button>
+    <button class="rail-btn" style="color:#71717a;" title="Devices">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+    </button>
+    <div style="flex:1;"></div>
+    <button class="rail-btn" style="color:#52525b;" title="Rescan for devices">
+      <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 3v6h-6"/></svg>
+    </button>
+    <button class="rail-btn" style="color:#52525b;" title="Settings">
+      <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+
+  <!-- Sub-sidebar (library actions) -->
+  <div style="width:48px;flex-shrink:0;background:#09090b;border-right:1px solid #27272a;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:8px;">
+    <button class="rail-btn" style="color:#71717a;" title="Import from Calibre">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+    </button>
+    <button class="rail-btn" style="color:#71717a;" title="Add Books">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button class="rail-btn" style="color:#71717a;" title="Reload Library">
+      <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 3v6h-6"/></svg>
+    </button>
+    <div style="flex:1;"></div>
+    <button class="rail-btn" style="color:#3f3f46;" title="Reset Library">
+      <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+    </button>
+  </div>
+
+  <!-- Main column -->
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+
+    <!-- Toolbar -->
+    <div style="border-bottom:1px solid #27272a;display:flex;align-items:stretch;flex-shrink:0;">
+      <span style="display:flex;align-items:center;padding:0 8px 0 12px;color:#71717a;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </span>
+      <input type="text" placeholder="Search title, author, series, tags… or tag:sci-fi author:tolkien"
+        style="flex:1;font-size:16px;background:transparent;color:#e4e4e7;border:none;outline:none;margin:4px;height:32px;" />
+      <div style="display:flex;align-items:center;border-left:1px solid #27272a;padding:0 8px;flex-shrink:0;">
+        <select style="background:#18181b;color:#d4d4d8;font-size:12px;border:1px solid #3f3f46;outline:none;border-radius:4px;padding:0 6px;height:28px;">
+          <option>Title A→Z</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;padding:0 8px;border-left:1px solid #27272a;flex-shrink:0;">
+        <button class="rail-btn" style="width:28px;height:28px;color:#71717a;" title="Table view">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <button class="rail-btn" style="width:28px;height:28px;background:#3f3f46;color:#e4e4e7;" title="Grid view">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Content: cover grid + detail panel -->
+    <div style="flex:1;display:flex;min-height:0;">
+      <div style="flex:1;overflow:auto;padding:16px;display:grid;grid-template-columns:repeat(6, 1fr);gap:12px;align-content:start;">
+        <div class="cover-card" style="outline:2px solid #3b82f6;">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">Moby Dick; Or, The Whale</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Herman Melville</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">Pride and Prejudice</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Jane Austen</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">Frankenstein</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Mary Shelley</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">Dracula</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Bram Stoker</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">The Odyssey</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Homer</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">Great Expectations</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Charles Dickens</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">War and Peace</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Leo Tolstoy</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">Jane Eyre</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Charlotte Brontë</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">The Iliad</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Homer</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">Middlemarch</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">George Eliot</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">Anna Karenina</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Leo Tolstoy</p>
+        </div>
+        <div class="cover-card">
+          <p style="margin:0;font-size:12px;font-weight:500;color:#d4d4d8;line-height:1.3;">Wuthering Heights</p>
+          <p style="margin:0;font-size:11px;color:#71717a;line-height:1.3;">Emily Brontë</p>
+        </div>
+      </div>
+
+      <!-- Book detail panel -->
+      <div style="width:320px;flex-shrink:0;border-left:1px solid #27272a;background:#09090b;overflow-y:auto;">
+        <div style="border-bottom:1px solid #27272a;">
+          <div style="width:100%;aspect-ratio:2/3;background:#27272a;display:flex;align-items:center;justify-content:center;color:#52525b;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm0 18H6V4h2v8l2.5-1.5L13 12V4h5v16z"/></svg>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:16px 16px 12px;border-bottom:1px solid #27272a;">
+          <h2 style="margin:0;font-size:14px;font-weight:600;color:#f4f4f5;line-height:1.35;">Moby Dick; Or, The Whale</h2>
+          <p style="margin:0;font-size:12px;color:#a1a1aa;">Herman Melville</p>
+          <div style="display:flex;gap:2px;margin-top:2px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52525b" stroke-width="1.5"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9-6.2-3.3-6.2 3.3 1.2-6.9-5-4.9 6.9-1z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52525b" stroke-width="1.5"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9-6.2-3.3-6.2 3.3 1.2-6.9-5-4.9 6.9-1z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52525b" stroke-width="1.5"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9-6.2-3.3-6.2 3.3 1.2-6.9-5-4.9 6.9-1z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52525b" stroke-width="1.5"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9-6.2-3.3-6.2 3.3 1.2-6.9-5-4.9 6.9-1z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52525b" stroke-width="1.5"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9-6.2-3.3-6.2 3.3 1.2-6.9-5-4.9 6.9-1z"/></svg>
+          </div>
+        </div>
+        <div style="padding:12px 16px;border-bottom:1px solid #27272a;display:flex;flex-direction:column;gap:6px;font-size:12px;">
+          <div style="display:flex;gap:8px;"><span style="color:#71717a;width:64px;flex-shrink:0;">Language</span><span style="color:#d4d4d8;">en</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#71717a;width:64px;flex-shrink:0;">Published</span><span style="color:#d4d4d8;">1 Jul 2001</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#71717a;width:64px;flex-shrink:0;">Added</span><span style="color:#d4d4d8;">31 Aug 2026</span></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;padding:12px 16px;border-bottom:1px solid #27272a;">
+          <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#3f3f46;color:#d4d4d8;">Whaling -- Fiction</span>
+          <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#3f3f46;color:#d4d4d8;">Sea stories</span>
+          <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#3f3f46;color:#d4d4d8;">Psychological fiction</span>
+          <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#3f3f46;color:#d4d4d8;">Ship captains -- Fiction</span>
+          <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#3f3f46;color:#d4d4d8;">Adventure stories</span>
+          <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#3f3f46;color:#d4d4d8;">Whales -- Fiction</span>
+        </div>
+        <div style="padding:12px 16px;">
+          <span style="display:inline-flex;align-items:center;gap:6px;">
+            <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#047857;color:#fff;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:0.03em;">EPUB</span>
+            <span style="font-size:10px;color:#71717a;">816.3 KB</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
