@@ -591,7 +591,10 @@ export function BookTable({
 										<td
 											key={cell.id}
 											className="px-3 py-2 truncate"
-											style={{ width: colWidth(cell.column.getSize()) }}
+											style={{
+												width: colWidth(cell.column.getSize()),
+												contain: "content",
+											}}
 										>
 											{cell.column.id === "index" ? (
 												isSelected && selectionCount > 1 ? (

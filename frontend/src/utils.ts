@@ -41,13 +41,15 @@ export const FORMAT_COLORS: Record<string, string> = {
 	azw3: "bg-purple-700",
 };
 
+const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+	year: "numeric",
+	month: "short",
+	day: "numeric",
+});
+
 export function formatDate(iso: string) {
 	if (!iso) return null;
-	return new Date(iso).toLocaleDateString("en-GB", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-	});
+	return dateFormatter.format(new Date(iso));
 }
 
 export function formatSize(bytes: number): string {
