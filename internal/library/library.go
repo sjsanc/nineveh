@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"nineveh/internal/db"
 	"nineveh/internal/metadata"
@@ -16,10 +17,40 @@ var ErrDuplicate = errors.New("book already in library")
 type Library struct {
 	db      *db.DB
 	rootDir string
+	mu      sync.Mutex // guards the match-check-through-write critical section of AddFile/ResolveConflict
 }
 
 func New(d *db.DB, rootDir string) *Library {
 	return &Library{db: d, rootDir: rootDir}
+}
+
+// ConflictAction is the user's chosen resolution for a FormatConflict.
+type ConflictAction string
+
+const (
+	ConflictKeepExisting ConflictAction = "keep_existing"
+	ConflictReplace      ConflictAction = "replace"
+	ConflictKeepBoth     ConflictAction = "keep_both"
+)
+
+// AddOutcome is returned by AddFile. Exactly one of Book/Conflict is set.
+type AddOutcome struct {
+	Book     *metadata.Book
+	Conflict *FormatConflict
+}
+
+// FormatConflict describes a same-format collision between an incoming
+// file and an already-matched existing book, requiring user resolution.
+type FormatConflict struct {
+	BookID       int64
+	BookTitle    string
+	Format       metadata.Format
+	ExistingPath string
+	ExistingSize int64
+	ExistingHash string
+	IncomingPath string // original source path, reused by ResolveConflict
+	IncomingSize int64
+	IncomingHash string
 }
 
 func (l *Library) GetBooks() ([]*metadata.Book, error) {

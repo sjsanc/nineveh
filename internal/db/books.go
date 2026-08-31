@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"nineveh/internal/metadata"
@@ -243,6 +244,98 @@ func (d *DB) InsertFormat(bookID int64, f *metadata.BookFile) error {
 		return fmt.Errorf("insert format: %w", err)
 	}
 	return nil
+}
+
+// GetBookByISBN finds a book whose ISBN normalizes to the same value as
+// isbn (case-folded, non-alphanumeric stripped, so hyphenation differences
+// don't prevent a match). Returns (nil, nil) if isbn is empty or no book
+// matches.
+func (d *DB) GetBookByISBN(isbn string) (*metadata.Book, error) {
+	norm := normalizeISBN(isbn)
+	if norm == "" {
+		return nil, nil
+	}
+	rows, err := d.conn.Query(`SELECT id, isbn FROM books WHERE isbn IS NOT NULL AND isbn != ''`)
+	if err != nil {
+		return nil, fmt.Errorf("query isbns: %w", err)
+	}
+
+	var matchID int64 = -1
+	for rows.Next() {
+		var id int64
+		var v string
+		if err := rows.Scan(&id, &v); err != nil {
+			rows.Close()
+			return nil, fmt.Errorf("scan isbn: %w", err)
+		}
+		if normalizeISBN(v) == norm {
+			matchID = id
+			break
+		}
+	}
+	rowsErr := rows.Err()
+	rows.Close() // must close before GetBook below — SetMaxOpenConns(1) means a still-open cursor deadlocks the next query
+	if rowsErr != nil {
+		return nil, rowsErr
+	}
+	if matchID < 0 {
+		return nil, nil
+	}
+	return d.GetBook(matchID)
+}
+
+// GetBookByTitleAuthor finds a book with an exact case-insensitive title
+// match credited to the given author. Returns (nil, nil) if title or
+// author is empty, or no book matches.
+func (d *DB) GetBookByTitleAuthor(title, author string) (*metadata.Book, error) {
+	if title == "" || author == "" {
+		return nil, nil
+	}
+	var id int64
+	err := d.conn.QueryRow(`
+		SELECT b.id FROM books b
+		JOIN book_authors ba ON ba.book_id = b.id
+		JOIN authors a ON a.id = ba.author_id
+		WHERE LOWER(b.title) = LOWER(?) AND LOWER(a.name) = LOWER(?)
+		LIMIT 1`, title, author).Scan(&id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("query title/author: %w", err)
+	}
+	return d.GetBook(id)
+}
+
+// ReplaceFormat overwrites an existing format row's path/size/hash in
+// place, identified by its current (pre-replace) hash. Used when the user
+// chooses to replace one file with another for the same book+format slot;
+// unlike UpdateFormatPath (same content, moved on disk), the content
+// itself is changing here.
+func (d *DB) ReplaceFormat(oldHash string, f *metadata.BookFile) error {
+	res, err := d.conn.Exec(`UPDATE formats SET path = ?, size = ?, hash = ? WHERE hash = ?`,
+		f.Path, f.Size, f.Hash, oldHash,
+	)
+	if err != nil {
+		return fmt.Errorf("replace format: %w", err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return fmt.Errorf("replace format: no row with hash %s", oldHash)
+	}
+	return nil
+}
+
+// normalizeISBN strips everything but digits and the ISBN-10 check digit
+// 'X', so "978-0-141-..." and "9780141..." compare equal.
+func normalizeISBN(s string) string {
+	s = strings.ToUpper(s)
+	var b strings.Builder
+	for _, r := range s {
+		if (r >= '0' && r <= '9') || r == 'X' {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
 }
 
 func (d *DB) getFormats(bookID int64) ([]metadata.BookFile, error) {

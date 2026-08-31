@@ -60,6 +60,71 @@ export namespace fetcher {
 
 }
 
+export namespace library {
+	
+	export class FormatConflict {
+	    BookID: number;
+	    BookTitle: string;
+	    Format: string;
+	    ExistingPath: string;
+	    ExistingSize: number;
+	    ExistingHash: string;
+	    IncomingPath: string;
+	    IncomingSize: number;
+	    IncomingHash: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FormatConflict(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.BookID = source["BookID"];
+	        this.BookTitle = source["BookTitle"];
+	        this.Format = source["Format"];
+	        this.ExistingPath = source["ExistingPath"];
+	        this.ExistingSize = source["ExistingSize"];
+	        this.ExistingHash = source["ExistingHash"];
+	        this.IncomingPath = source["IncomingPath"];
+	        this.IncomingSize = source["IncomingSize"];
+	        this.IncomingHash = source["IncomingHash"];
+	    }
+	}
+	export class AddOutcome {
+	    Book?: metadata.Book;
+	    Conflict?: FormatConflict;
+	
+	    static createFrom(source: any = {}) {
+	        return new AddOutcome(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Book = this.convertValues(source["Book"], metadata.Book);
+	        this.Conflict = this.convertValues(source["Conflict"], FormatConflict);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace metadata {
 	
 	export class BookFile {

@@ -33,7 +33,7 @@ interface Props {
 	device?: DeviceInfo;
 	isLoading?: boolean;
 	onRemoveFromDevice?: (paths: string[]) => void;
-	onImportFromDevice?: (paths: string[]) => void;
+	onAddFromDevice?: (paths: string[]) => void;
 	onSelectFile?: (file: BookFile | null) => void;
 	onEject?: () => void;
 }
@@ -118,7 +118,7 @@ export function DeviceTable({
 	device,
 	isLoading,
 	onRemoveFromDevice,
-	onImportFromDevice,
+	onAddFromDevice,
 	onSelectFile,
 	onEject,
 }: Props) {
@@ -346,7 +346,7 @@ export function DeviceTable({
 									text={`Send to library`}
 									icon="import"
 									onClick={() => {
-										onImportFromDevice?.([...selectedPaths]);
+										onAddFromDevice?.([...selectedPaths]);
 										setCtxMenu(null);
 									}}
 								/>

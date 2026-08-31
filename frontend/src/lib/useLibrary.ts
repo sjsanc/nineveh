@@ -1,22 +1,28 @@
 import { useEffect, useState } from "react";
 import {
+	AddBooksFromDevice,
+	AddFile,
 	DeleteBook,
 	FetchBookMetadata,
 	GetBooks,
-	ImportBooksFromDevice,
-	ImportFile,
 	ImportFromCalibre,
 	LocateFormat,
 	OpenBook,
 	RelocateLibrary,
 	RemoveFormat,
 	ResetLibrary,
+	ResolveAddConflict,
 	SelectDirectory,
 	SelectFiles,
 	SendBook,
 	UpdateBook,
 } from "../../wailsjs/go/main/App";
-import { type Book, type FetchedMetadata, metadata } from "../types";
+import {
+	type Book,
+	type FetchedMetadata,
+	type FormatConflict,
+	metadata,
+} from "../types";
 import type { useToaster } from "./useToaster";
 
 const KINDLE_FORMAT_PRIORITY = ["azw3", "mobi", "azw", "epub", "pdf"];
@@ -40,6 +46,9 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 	const [fetchError, setFetchError] = useState("");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [missingCalloutDismissed, setMissingCalloutDismissed] = useState(false);
+	const [pendingConflicts, setPendingConflicts] = useState<FormatConflict[]>(
+		[],
+	);
 
 	useEffect(() => {
 		GetBooks()
@@ -177,12 +186,59 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 		showToast(`Removed ${removed} book${removed === 1 ? "" : "s"}`, "success");
 	}
 
-	async function importFromDevice(paths: string[]) {
+	function upsertBook(list: Book[], updated: Book): Book[] {
+		const exists = list.some((b) => b.ID === updated.ID);
+		return exists
+			? list.map((b) => (b.ID === updated.ID ? updated : b))
+			: [...list, updated];
+	}
+
+	// Reviews a batch of format conflicts at once (mirrors Calibre's "these
+	// titles already exist, add anyway?" checklist): whatever the caller
+	// selected gets added as an extra format; anything left unselected is
+	// simply left alone — no backend call needed for a skip.
+	async function reviewConflicts(selected: FormatConflict[]) {
+		if (selected.length > 0) {
+			const key = startProgressToast(
+				`Adding ${selected.length} book${selected.length === 1 ? "" : "s"}…`,
+			);
+			const results = await Promise.allSettled(
+				selected.map((c) => ResolveAddConflict(c, "keep_both")),
+			);
+			const updated: Book[] = [];
+			let failed = 0;
+			for (const r of results) {
+				if (r.status === "fulfilled" && r.value) updated.push(r.value);
+				else {
+					failed++;
+					console.error("ResolveAddConflict failed:", r);
+				}
+			}
+			if (updated.length > 0) {
+				setBooks((prev) => updated.reduce(upsertBook, prev));
+			}
+			showToast(
+				failed > 0
+					? `Added ${updated.length}, ${failed} failed`
+					: `Added ${updated.length} book${updated.length === 1 ? "" : "s"}`,
+				failed > 0 ? "warning" : "success",
+				3000,
+				key,
+			);
+		}
+		setPendingConflicts([]);
+	}
+
+	function dismissConflictReview() {
+		setPendingConflicts([]);
+	}
+
+	async function addBooksFromDevice(paths: string[]) {
 		const key = startProgressToast(
-			`Importing ${paths.length} book${paths.length === 1 ? "" : "s"}…`,
+			`Adding ${paths.length} book${paths.length === 1 ? "" : "s"}…`,
 		);
 		try {
-			const added = await ImportBooksFromDevice(paths);
+			const added = await AddBooksFromDevice(paths);
 			const refreshed = await GetBooks();
 			setBooks(refreshed ?? []);
 			const msg =
@@ -191,7 +247,7 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 					: `Added ${added} of ${paths.length} to library`;
 			showToast(msg, added > 0 ? "success" : "warning", 4000, key);
 		} catch (err) {
-			showToast("Import from device failed", "danger", 4000, key);
+			showToast("Add from device failed", "danger", 4000, key);
 			console.error(err);
 		}
 	}
@@ -204,25 +260,58 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 				`Adding ${paths.length} book${paths.length === 1 ? "" : "s"}…`,
 			);
 			const results = await Promise.allSettled(
-				paths.map((path) => ImportFile(path)),
+				paths.map((path) => AddFile(path)),
 			);
+
 			const added: Book[] = [];
+			const conflicts: FormatConflict[] = [];
+			const dupTitles: string[] = [];
+			let failed = 0;
+
 			for (const r of results) {
-				if (r.status === "fulfilled" && r.value) added.push(r.value);
-				else if (r.status === "rejected")
-					console.error("ImportFile failed:", r.reason);
+				if (r.status === "fulfilled") {
+					if (r.value.Conflict) conflicts.push(r.value.Conflict);
+					else if (r.value.Book) added.push(r.value.Book);
+				} else {
+					const msg = String(r.reason);
+					const dup = msg.match(/book already in library: (.+)$/);
+					if (dup) dupTitles.push(dup[1]);
+					else {
+						failed++;
+						console.error("AddFile failed:", r.reason);
+					}
+				}
 			}
+
 			if (added.length > 0) {
-				setBooks((prev) => [...prev, ...added]);
-				showToast(
-					`Added ${added.length} book${added.length === 1 ? "" : "s"}`,
-					"success",
-					3000,
-					key,
-				);
-			} else {
-				showToast("Nothing added", "warning", 3000, key);
+				setBooks((prev) => added.reduce(upsertBook, prev));
 			}
+			if (conflicts.length > 0) {
+				setPendingConflicts((prev) => [...prev, ...conflicts]);
+			}
+
+			const parts: string[] = [];
+			if (added.length > 0) parts.push(`${added.length} added`);
+			if (conflicts.length > 0)
+				parts.push(
+					`${conflicts.length} need${conflicts.length === 1 ? "s" : ""} review`,
+				);
+			if (dupTitles.length === 1)
+				parts.push(`"${dupTitles[0]}" already in library`);
+			else if (dupTitles.length > 1)
+				parts.push(`${dupTitles.length} already in library`);
+			if (failed > 0) parts.push(`${failed} failed`);
+
+			showToast(
+				parts.length > 0 ? parts.join(", ") : "Nothing added",
+				failed > 0
+					? "danger"
+					: conflicts.length > 0 || dupTitles.length > 0
+						? "warning"
+						: "success",
+				4000,
+				key,
+			);
 		} catch (err) {
 			showToast("Add failed", "danger", 3000);
 			console.error(err);
@@ -361,6 +450,9 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 		missingCount,
 		showMissingCallout,
 		setMissingCalloutDismissed,
+		pendingConflicts,
+		reviewConflicts,
+		dismissConflictReview,
 		reload,
 		handleSelectionChange,
 		sendToDevice,
@@ -371,7 +463,7 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 		closeFetchDialog,
 		handleToggleRead,
 		handleRemoveBooks,
-		importFromDevice,
+		addBooksFromDevice,
 		handleAddBooks,
 		handleImportFromCalibre,
 		handleOpenBook,

@@ -194,23 +194,37 @@ func (a *App) DeleteBook(id int64) error {
 	return a.library.DeleteBook(id)
 }
 
-func (a *App) ImportFile(path string) (*metadata.Book, error) {
-	slog.Info("importing file", "path", path)
-	book, err := a.library.ImportFile(path)
+func (a *App) AddFile(path string) (*library.AddOutcome, error) {
+	slog.Info("adding file", "path", path)
+	outcome, err := a.library.AddFile(path)
 	if err != nil {
+		slog.Warn("add file failed", "path", path, "err", err)
 		return nil, err
 	}
-	slog.Info("file imported", "title", book.Title)
-	return book, nil
+	if outcome.Conflict != nil {
+		slog.Info("add file: format conflict", "path", path, "book", outcome.Conflict.BookTitle, "format", outcome.Conflict.Format)
+	} else {
+		slog.Info("file added", "title", outcome.Book.Title)
+	}
+	return outcome, nil
 }
 
-func (a *App) ImportDir(dir string) ([]*metadata.Book, error) {
-	slog.Info("importing directory", "dir", dir)
-	books, errs := a.library.ImportDir(dir)
-	for _, err := range errs {
-		slog.Warn("import error", "err", err)
+func (a *App) ResolveAddConflict(conflict library.FormatConflict, action library.ConflictAction) (*metadata.Book, error) {
+	slog.Info("resolving add conflict", "book", conflict.BookTitle, "format", conflict.Format, "action", action)
+	book, err := a.library.ResolveConflict(conflict, action)
+	if err != nil {
+		slog.Warn("resolve conflict failed", "err", err)
 	}
-	slog.Info("directory import complete", "imported", len(books), "errors", len(errs))
+	return book, err
+}
+
+func (a *App) AddDir(dir string) ([]*metadata.Book, error) {
+	slog.Info("adding directory", "dir", dir)
+	books, errs := a.library.AddDir(dir)
+	for _, err := range errs {
+		slog.Warn("add error", "err", err)
+	}
+	slog.Info("directory add complete", "added", len(books), "errors", len(errs))
 	return books, nil
 }
 
@@ -297,23 +311,21 @@ func (a *App) RemoveFromDevice(deviceID string, paths []string) error {
 	return fmt.Errorf("device %s not found", deviceID)
 }
 
-func (a *App) ImportBooksFromDevice(paths []string) (int, error) {
-	var added, failCount int
-	for _, p := range paths {
-		if _, err := a.library.ImportFile(p); err != nil {
-			if errors.Is(err, library.ErrDuplicate) {
-				continue
-			}
-			slog.Warn("import from device failed", "path", p, "err", err)
-			failCount++
+func (a *App) AddBooksFromDevice(paths []string) (int, error) {
+	slog.Info("adding books from device", "count", len(paths))
+	books, errs := a.library.AddPaths(paths)
+	var failCount int
+	for _, err := range errs {
+		if errors.Is(err, library.ErrDuplicate) {
 			continue
 		}
-		added++
+		slog.Warn("add from device failed", "err", err)
+		failCount++
 	}
 	if failCount > 0 {
-		return added, fmt.Errorf("%d file(s) failed to import", failCount)
+		return len(books), fmt.Errorf("%d file(s) failed to add", failCount)
 	}
-	return added, nil
+	return len(books), nil
 }
 
 func (a *App) cachedDevices() []device.Device {

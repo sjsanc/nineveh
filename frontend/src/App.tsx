@@ -3,6 +3,7 @@ import { useState } from "react";
 import { prefs } from "../wailsjs/go/models";
 import { BookPanel } from "./components/BookPanel";
 import { BookTable } from "./components/BookTable";
+import { ConflictReviewDialog } from "./components/ConflictReviewDialog";
 import { DevicePanel } from "./components/DevicePanel";
 import { DeviceTable } from "./components/DeviceTable";
 import { EditBookDialog } from "./components/EditBookDialog";
@@ -69,7 +70,7 @@ function App() {
 										device={device.activeDevice ?? undefined}
 										isLoading={device.isLoadingDeviceBooks}
 										onRemoveFromDevice={device.removeFromDevice}
-										onImportFromDevice={library.importFromDevice}
+										onAddFromDevice={library.addBooksFromDevice}
 										onSelectFile={device.setSelectedDeviceFile}
 										onEject={
 											device.activeDeviceID
@@ -221,6 +222,15 @@ function App() {
 						/>
 					</ErrorBoundary>
 				)}
+				<ErrorBoundary
+					key={library.pendingConflicts.length > 0 ? "review" : "no-conflicts"}
+				>
+					<ConflictReviewDialog
+						conflicts={library.pendingConflicts}
+						onSubmit={library.reviewConflicts}
+						onCancel={library.dismissConflictReview}
+					/>
+				</ErrorBoundary>
 				{settingsOpen && (
 					<SettingsDialog
 						onClose={() => setSettingsOpen(false)}

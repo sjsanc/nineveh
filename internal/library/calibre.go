@@ -107,7 +107,7 @@ func (l *Library) importCalibreBook(opfPath, bookDir string) (*metadata.Book, []
 	book.ID = id
 
 	for _, f := range newFormats {
-		destPath, err := l.copyToLibrary(f.path, book, f.format)
+		destPath, err := l.copyToLibrary(f.path, book, f.format, false)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: copy %s: %w", book.Title, f.format, err))
 			continue
