@@ -14,6 +14,8 @@ type googleBooks struct {
 	apiKey string
 }
 
+func (gb *googleBooks) name() string { return "Google Books" }
+
 func (gb *googleBooks) fetch(ctx context.Context, book *metadata.Book) ([]FetchedMetadata, error) {
 	query := ""
 	if book.ISBN != "" {
@@ -64,16 +66,16 @@ type gbItem struct {
 }
 
 type gbVolumeInfo struct {
-	Title               string        `json:"title"`
-	Authors             []string      `json:"authors"`
-	Publisher           string        `json:"publisher"`
-	Description         string        `json:"description"`
-	Categories          []string      `json:"categories"`
-	PublishedDate       string        `json:"publishedDate"`
-	Language            string        `json:"language"`
+	Title               string         `json:"title"`
+	Authors             []string       `json:"authors"`
+	Publisher           string         `json:"publisher"`
+	Description         string         `json:"description"`
+	Categories          []string       `json:"categories"`
+	PublishedDate       string         `json:"publishedDate"`
+	Language            string         `json:"language"`
 	IndustryIdentifiers []gbIdentifier `json:"industryIdentifiers"`
-	ImageLinks          gbImageLinks  `json:"imageLinks"`
-	AverageRating       float64       `json:"averageRating"`
+	ImageLinks          gbImageLinks   `json:"imageLinks"`
+	AverageRating       float64        `json:"averageRating"`
 }
 
 type gbIdentifier struct {

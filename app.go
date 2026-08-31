@@ -146,12 +146,20 @@ func (a *App) UpdateBook(book *metadata.Book) error {
 	return a.library.UpdateBook(book)
 }
 
+// FetchMetadataResult holds the outcome of a metadata fetch: candidates from
+// whichever sources succeeded, plus a warning per source that failed (so a
+// failed source is visible in the UI instead of just silently missing).
+type FetchMetadataResult struct {
+	Candidates []fetcher.FetchedMetadata `json:"candidates"`
+	Warnings   []string                  `json:"warnings"`
+}
+
 // FetchBookMetadata queries external metadata sources (Open Library, optionally Google Books)
 // and returns candidate metadata for the given book.
-func (a *App) FetchBookMetadata(bookID int64) ([]fetcher.FetchedMetadata, error) {
+func (a *App) FetchBookMetadata(bookID int64) (FetchMetadataResult, error) {
 	book, err := a.library.GetBook(bookID)
 	if err != nil {
-		return nil, err
+		return FetchMetadataResult{}, err
 	}
 	p := a.prefs.Get()
 	cfg := fetcher.Config{
@@ -159,7 +167,11 @@ func (a *App) FetchBookMetadata(bookID int64) ([]fetcher.FetchedMetadata, error)
 		OpenLibraryEnabled: p.FetchSources.OpenLibraryEnabled,
 		GoogleBooksEnabled: p.FetchSources.GoogleBooksEnabled,
 	}
-	return fetcher.FetchCandidates(a.ctx, book, cfg)
+	candidates, warnings, err := fetcher.FetchCandidates(a.ctx, book, cfg)
+	if err != nil {
+		return FetchMetadataResult{}, err
+	}
+	return FetchMetadataResult{Candidates: candidates, Warnings: warnings}, nil
 }
 
 // ApplyFetchedCover downloads a cover image from coverURL, saves it to the covers directory,

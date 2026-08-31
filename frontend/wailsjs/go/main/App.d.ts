@@ -3,7 +3,7 @@
 import {metadata} from '../models';
 import {library} from '../models';
 import {device} from '../models';
-import {fetcher} from '../models';
+import {main} from '../models';
 import {prefs} from '../models';
 
 export function AddBooksFromDevice(arg1:Array<string>):Promise<number>;
@@ -20,7 +20,7 @@ export function DetectDevices():Promise<Array<device.DeviceInfo>>;
 
 export function EjectDevice(arg1:string):Promise<void>;
 
-export function FetchBookMetadata(arg1:number):Promise<Array<fetcher.FetchedMetadata>>;
+export function FetchBookMetadata(arg1:number):Promise<main.FetchMetadataResult>;
 
 export function GetAllAuthors():Promise<Array<string>>;
 

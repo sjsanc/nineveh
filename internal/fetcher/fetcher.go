@@ -2,6 +2,7 @@ package fetcher
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"nineveh/internal/metadata"
@@ -30,11 +31,15 @@ type Config struct {
 }
 
 type source interface {
+	name() string
 	fetch(ctx context.Context, book *metadata.Book) ([]FetchedMetadata, error)
 }
 
 // FetchCandidates queries all enabled sources and returns up to 5 candidates.
-func FetchCandidates(ctx context.Context, book *metadata.Book, cfg Config) ([]FetchedMetadata, error) {
+// A source that fails (after doGet's built-in retry) doesn't abort the whole
+// fetch — it's reported back as a warning so the caller can tell the user
+// which source came up empty and why, rather than silently omitting it.
+func FetchCandidates(ctx context.Context, book *metadata.Book, cfg Config) ([]FetchedMetadata, []string, error) {
 	var sources []source
 	if cfg.OpenLibraryEnabled {
 		sources = append(sources, &openLibrary{})
@@ -44,9 +49,11 @@ func FetchCandidates(ctx context.Context, book *metadata.Book, cfg Config) ([]Fe
 	}
 
 	var results []FetchedMetadata
+	var warnings []string
 	for _, s := range sources {
 		candidates, err := s.fetch(ctx, book)
 		if err != nil {
+			warnings = append(warnings, fmt.Sprintf("%s: %v", s.name(), err))
 			continue
 		}
 		results = append(results, candidates...)
@@ -54,7 +61,7 @@ func FetchCandidates(ctx context.Context, book *metadata.Book, cfg Config) ([]Fe
 			break
 		}
 	}
-	return results, nil
+	return results, warnings, nil
 }
 
 func joinAuthors(authors []string) string {

@@ -8,6 +8,7 @@ interface Props {
 	book: Book;
 	candidates: FetchedMetadata[] | null; // null = still loading
 	error?: string;
+	warnings?: string[]; // sources that failed but didn't abort the whole fetch
 	onClose: () => void;
 	onSave: (updated: Book) => void;
 }
@@ -98,6 +99,7 @@ export function FetchMetadataDialog({
 	book,
 	candidates,
 	error,
+	warnings,
 	onClose,
 	onSave,
 }: Props) {
@@ -248,6 +250,13 @@ export function FetchMetadataDialog({
 					{error && (
 						<Callout intent="danger" title="Fetch failed">
 							{error}
+						</Callout>
+					)}
+
+					{/* Source warnings — some sources failed but others still returned results */}
+					{!error && warnings && warnings.length > 0 && (
+						<Callout intent="warning" title="Some sources failed">
+							{warnings.join("; ")}
 						</Callout>
 					)}
 

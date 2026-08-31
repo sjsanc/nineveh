@@ -1,8 +1,14 @@
-import { type fetcher, type library, metadata } from "../wailsjs/go/models";
+import {
+	type fetcher,
+	type library,
+	type main,
+	metadata,
+} from "../wailsjs/go/models";
 
 export type Book = InstanceType<typeof metadata.Book>;
 export type BookFile = InstanceType<typeof metadata.BookFile>;
 export type FetchedMetadata = InstanceType<typeof fetcher.FetchedMetadata>;
+export type FetchMetadataResult = InstanceType<typeof main.FetchMetadataResult>;
 export type AddOutcome = InstanceType<typeof library.AddOutcome>;
 export type FormatConflict = InstanceType<typeof library.FormatConflict>;
 export { metadata };

@@ -44,6 +44,7 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 		FetchedMetadata[] | null
 	>(null);
 	const [fetchError, setFetchError] = useState("");
+	const [fetchWarnings, setFetchWarnings] = useState<string[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [missingCalloutDismissed, setMissingCalloutDismissed] = useState(false);
 	const [pendingConflicts, setPendingConflicts] = useState<FormatConflict[]>(
@@ -128,9 +129,11 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 		setFetchingBook(book);
 		setMetadataCandidates(null);
 		setFetchError("");
+		setFetchWarnings([]);
 		try {
-			const candidates = await FetchBookMetadata(book.ID as number);
-			setMetadataCandidates(candidates ?? []);
+			const result = await FetchBookMetadata(book.ID as number);
+			setMetadataCandidates(result?.candidates ?? []);
+			setFetchWarnings(result?.warnings ?? []);
 		} catch (err) {
 			setFetchError(String(err));
 			setMetadataCandidates([]);
@@ -141,6 +144,7 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 		setFetchingBook(null);
 		setMetadataCandidates(null);
 		setFetchError("");
+		setFetchWarnings([]);
 	}
 
 	async function handleToggleRead(bookIds: number[], isRead: boolean) {
@@ -445,6 +449,7 @@ export function useLibrary(toast: ReturnType<typeof useToaster>) {
 		fetchingBook,
 		metadataCandidates,
 		fetchError,
+		fetchWarnings,
 		searchQuery,
 		setSearchQuery,
 		missingCount,

@@ -215,6 +215,7 @@ function App() {
 							book={library.fetchingBook}
 							candidates={library.metadataCandidates}
 							error={library.fetchError}
+							warnings={library.fetchWarnings}
 							onClose={library.closeFetchDialog}
 							onSave={(updated) => {
 								library.handleSaveBook(updated);
