@@ -118,10 +118,10 @@ git push origin v1.2.3
 
 Tag push is the sole trigger for the release pipeline.
 
-### CI pipeline (`.github/workflows/ci-release.yml`)
+### CI pipeline (`.github/workflows/ci.yml`, `.github/workflows/release.yml`)
 
-- **Push/PR to master** → `test` job: `go test ./internal/...`
-- **Tag push `v*`** → `test` then `release`: builds on `ubuntu-24.04`, creates a GitHub release with a Linux amd64 tarball, then updates the AUR package.
+- **Push/PR to master** → `test-go` job: `go test -race ./internal/...` + `govulncheck`; `test-frontend` job: typecheck, lint, tests.
+- **Tag push `v*`** → `test` (same Go checks) then `release`: builds on `ubuntu-24.04`, creates a GitHub release with a Linux amd64 tarball, then updates the AUR package.
 
 Linux build command: `wails build -tags webkit2_41 -ldflags "-s -w"` (~18 MB binary).
 

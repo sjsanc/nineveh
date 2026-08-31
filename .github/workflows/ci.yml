@@ -20,7 +20,12 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - run: go test ./internal/...
+      - run: go test -race ./internal/...
+
+      - name: govulncheck
+        uses: golang/govulncheck-action@v1.0.4
+        with:
+          go-version-file: go.mod
 
   test-frontend:
     name: Test (Frontend)
