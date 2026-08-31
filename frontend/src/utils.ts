@@ -68,6 +68,22 @@ export function stemOf(path: string): string {
 	return (dot > 0 ? base.slice(0, dot) : base).toLowerCase();
 }
 
+export function filenameOf(path: string): string {
+	return path.split(/[/\\]/).pop() ?? path;
+}
+
+// Truncates a filename to at most `max` characters, keeping the extension
+// visible by trimming out of the middle of the base name instead of the end.
+export function truncateFilename(name: string, max: number): string {
+	if (name.length <= max) return name;
+	const dot = name.lastIndexOf(".");
+	const ext = dot > 0 ? name.slice(dot) : "";
+	const base = dot > 0 ? name.slice(0, dot) : name;
+	const keep = Math.max(max - ext.length - 1, 4);
+	if (keep >= base.length) return `${name.slice(0, max - 1)}…`;
+	return `${base.slice(0, keep)}…${ext}`;
+}
+
 export function buildIndex(books: Book[]): Map<string, Book> {
 	const map = new Map<string, Book>();
 	for (const book of books) {

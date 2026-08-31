@@ -7,9 +7,11 @@ import { useResizablePanel } from "../lib/useResizablePanel";
 import type { Book } from "../types";
 import {
 	FORMAT_COLORS,
+	filenameOf,
 	formatDate,
 	formatDescription,
 	formatSize,
+	truncateFilename,
 } from "../utils";
 import { CoverLightbox } from "./CoverLightbox";
 import { Rating } from "./Rating";
@@ -229,19 +231,25 @@ export function BookPanel({
 				<div className="flex flex-col gap-1.5 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
 					{book.Formats.map((f) =>
 						f.Missing ? (
-							<div key={f.Format} className="flex items-center gap-1.5">
+							<div key={f.Format} className="flex items-baseline gap-1.5">
 								<span
-									className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide ${FORMAT_COLORS[f.Format] ?? "bg-zinc-600"} text-white opacity-40`}
+									className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide ${FORMAT_COLORS[f.Format] ?? "bg-zinc-600"} text-white opacity-40 shrink-0`}
 								>
 									{f.Format}
 								</span>
-								<span className="text-[10px] text-yellow-500 flex items-center gap-0.5">
+								<span
+									className="text-[10px] text-zinc-500 font-mono truncate"
+									title={filenameOf(f.Path)}
+								>
+									{truncateFilename(filenameOf(f.Path), 24)}
+								</span>
+								<span className="text-[10px] text-yellow-500 flex items-center gap-0.5 shrink-0">
 									<Icon icon="warning-sign" size={10} />
 									missing
 								</span>
 								<button
 									type="button"
-									className="text-[10px] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 underline cursor-pointer ml-1"
+									className="text-[10px] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 underline cursor-pointer shrink-0"
 									onClick={() => onLocateFormat?.(book.ID as number, f.Hash)}
 									title="Locate file on disk"
 								>
@@ -249,7 +257,7 @@ export function BookPanel({
 								</button>
 								<button
 									type="button"
-									className="text-[10px] text-red-500/70 hover:text-red-400 underline cursor-pointer"
+									className="text-[10px] text-red-500/70 hover:text-red-400 underline cursor-pointer shrink-0"
 									onClick={() => onRemoveFormat?.(book.ID as number, f.Hash)}
 									title="Remove this format from library"
 								>
@@ -260,16 +268,19 @@ export function BookPanel({
 							<button
 								type="button"
 								key={f.Format}
-								className="flex items-center gap-1 group cursor-pointer w-fit"
+								className="flex items-baseline gap-1.5 group cursor-pointer w-fit max-w-full"
 								title="Open in reader"
 								onClick={() => onOpenBook?.(book.ID as number, f.Format)}
 							>
 								<span
-									className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide ${FORMAT_COLORS[f.Format] ?? "bg-zinc-600"} text-white group-hover:opacity-80 transition-opacity`}
+									className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-mono tracking-wide ${FORMAT_COLORS[f.Format] ?? "bg-zinc-600"} text-white group-hover:opacity-80 transition-opacity shrink-0`}
 								>
 									{f.Format}
 								</span>
-								<span className="text-[10px] text-zinc-500">
+								<span className="text-[10px] text-zinc-600 dark:text-zinc-400 font-mono truncate">
+									{truncateFilename(filenameOf(f.Path), 24)}
+								</span>
+								<span className="text-[10px] text-zinc-500 shrink-0">
 									{formatSize(f.Size)}
 								</span>
 							</button>
