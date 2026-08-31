@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  commands:
+    frontend-lint:
+      root: "frontend/"
+      glob:
+        - "frontend/src/*.ts"
+        - "frontend/src/*.tsx"
+      run: npx biome check --write {staged_files}
+      stage_fixed: true
+    go-fmt:
+      glob: "*.go"
+      run: gofmt -l -w {staged_files}
+      stage_fixed: true
+    go-vet:
+      glob: "*.go"
+      run: go vet ./...

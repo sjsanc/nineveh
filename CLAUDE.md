@@ -63,6 +63,15 @@ npx biome format --write src/ # format only
 
 Biome must pass clean (`0 errors`) before committing frontend changes.
 
+### Pre-commit hook
+
+A [lefthook](https://github.com/evilmartians/lefthook) config (`lefthook.yml`) runs Biome (`--write`) on staged frontend files and `gofmt`/`go vet` on staged Go files before each commit, auto-fixing and re-staging what it can. One-time setup per clone:
+
+```bash
+go install github.com/evilmartians/lefthook@latest  # installs to $(go env GOPATH)/bin, not tracked in go.mod
+lefthook install
+```
+
 ## Testing
 
 ### Backend
