@@ -12,6 +12,10 @@ Nineveh is a minimal ebook library manager built with Wails v2 (Go backend + Rea
 
 The `-tags webkit2_41` flag is required on Linux to use webkit2gtk-4.1.
 
+## Style
+
+When writing a commit, do NOT add an attribution to Claude, or a session link.
+
 ## Architecture
 
 ### Backend (`app.go` + `internal/`)
